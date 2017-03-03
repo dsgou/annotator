@@ -36,20 +36,23 @@ class gantShow(videoGantChart):
         
         for i in xrange(len(videobox)):
             frame_index = videobox[i]
+            time_append = timeWithId[i].append
             for j in xrange(len(frame_index.box_id)):
                 boxIdx = frame_index.box_id[j]
                 if boxIdx != -1:
                     for allactions in frame_index.annotation[j]:
                         if isinstance(allactions, list):
                             for action in allactions:
-                                timeWithId[i].append([boxIdx, action])
+                                time_append([boxIdx, action])
                         else:
-                            timeWithId[i].append([boxIdx, allactions])
+                            time_append([boxIdx, allactions])
 
         boxAtYaxes = sorted(t for i in timeWithId for t in i)
         boxAtYaxes = list(k for k,_ in itertools.groupby(boxAtYaxes))
+        
+        ticky_append = tickY.append
         for key in xrange(len(boxAtYaxes)):
-            tickY.append(key)
+            ticky_append(key)
         
         if len(boxAtYaxes) > 0:
             for tup in boxAtYaxes:
@@ -57,10 +60,13 @@ class gantShow(videoGantChart):
                 index = 0
                 start_time = 0
                 end_time   = 1
+                hor_lines = self.axes.hlines
+                get_color = self.getColor
+                time_calc = self.timeCalc
                 while start_time < end_time:
-                    start_time, end_time, index = self.timeCalc(timeWithId, idx, index, action)
-                    color = self.getColor(action)
-                    self.axes.hlines(boxAtYaxes.index([idx, action]), start_time, end_time,linewidth=10,color=color)
+                    start_time, end_time, index = time_calc(timeWithId, idx, index, action)
+                    color = get_color(action)
+                    hor_lines(boxAtYaxes.index([idx, action]), start_time, end_time,linewidth=10,color=color)
                     
 
         for tick in self.axes.yaxis.get_major_ticks():
@@ -77,6 +83,7 @@ class gantShow(videoGantChart):
         temp_id = idx
         start_time = 0
         end_time = 0
+        
         for i in xrange(index, len(box_list)-1): 
             flag = False
             index = i

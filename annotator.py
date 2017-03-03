@@ -1225,7 +1225,7 @@ class boundBox(object):
         self.box_Param.append(params[::])
         self.annotation.append(classify)
         self.features.append(features)
-        self.calcAngle()
+        #self.calcAngle()
 
     def removeAllBox(self):
         self.box_id[:]     = []
@@ -1413,9 +1413,10 @@ class MainWindow(QMainWindow):
     def copyPrevious(self):
         if frameCounter > 0:
             for i in xrange(frameCounter - 1, 0, -1):
-                if player.videobox[i].box_id:
+                box = player.videobox[i]
+                if box.box_id:
                     for j in xrange(i + 1, frameCounter + 1):
-                        player.videobox[j].copy(player.videobox[i]) 
+                        player.videobox[j].copy(box) 
                     break
             player.videoWidget.repaint()
     
