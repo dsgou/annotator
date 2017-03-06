@@ -15,9 +15,6 @@ import argparse
 import textwrap
 import matplotlib
 
-matplotlib.use("Qt5Agg")
-import matplotlib.pyplot as plt
-
 from sensor_msgs.msg import Image
 from sensor_msgs.msg import CompressedImage
 from cv_bridge import CvBridge, CvBridgeError
@@ -981,7 +978,8 @@ class VideoPlayer(QWidget):
             else:
                 video_player = True
                 self.duration, framerate, self.message_count  =  rosbagRGB.get_metadata(fileName)
-                self.videobox = [boundBox(count) for count in xrange(int(self.message_count))]  
+                self.videobox = [boundBox(count) for count in xrange(int(self.message_count))] 
+                
                 if self.rgbButton:
                     self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(os.path.abspath(fileName))))
                     self.playButton.setEnabled(True)
@@ -1017,11 +1015,12 @@ class VideoPlayer(QWidget):
                     counter = 0
                     self.box_actionBuffer = [key for key in box_action]
                     self.features = [key for key in features]
-                    for idx, key in enumerate(self.box_buffer):
+                    a = 0
+                    for i, key in enumerate(self.box_buffer):
                         if timestamp is not None:
                             if timestamp != key[0]:
                                 counter += 1
-                        self.videobox[counter].addBox(self.time_buff[counter], key[1], key[2:], self.box_actionBuffer[idx], features[idx])
+                        self.videobox[counter].addBox(key[0], key[1], key[2:], self.box_actionBuffer[i], features[i])
                         timestamp  = key[0]
                               
                     gantChart.axes.clear()
@@ -1029,7 +1028,43 @@ class VideoPlayer(QWidget):
                     gantChart.draw()
         else:
             self.errorMessages(10)
-		
+	
+    #Writes the boxes to csv
+    def writeCSV(self):
+        global videoCSV
+        global headlines
+        global rgbFileName
+        global video_player
+        if video_player and videoCSV:
+            
+            csvFileName = rgbFileName.replace(rgbFileName.split(".")[-1],"csv")
+            with open(csvFileName, 'w') as file:
+                csv_writer = csv.writer(file, delimiter='\t')
+                csv_writer.writerow(headlines)
+                for i in xrange(0, len(self.videobox)):
+                    box = self.videobox[i]
+                    if len(box.box_id) > 0:
+                        for j in xrange(0, len(box.box_id)):
+                            master = []
+                            append = master.append
+                            if box.box_id[j] != -1:
+                                append(box.timestamp)
+                                append(box.box_id[j])
+                                for param in box.box_Param[j][::]:
+                                    append(param)
+                                for param in box.features[j][::]:
+                                    append(param)
+                                append(box.annotation[j])    
+                                
+                                csv_writer.writerow(master)
+                            else:
+                                csv_writer.writerow([box.timestamp])
+                    else:
+                        csv_writer.writerow([box.timestamp])
+                    
+                print ("Csv written at: ", csvFileName) 
+                
+                	
     def errorMessages(self, index):
         msgBox = QMessageBox()
         msgBox.setIcon(msgBox.Warning)
@@ -1140,38 +1175,7 @@ class VideoPlayer(QWidget):
         if audio_player:
             self.player.setPosition(position)
 
-    #Writes the boxes to csv
-    def writeCSV(self):
-        global bagFile
-        global videoCSV
-        global headlines
-        if bagFile and videoCSV:
-            
-            csvFileName = bagFile.replace(".bag","_out.csv")
-            with open(csvFileName, 'w') as file:
-                csv_writer = csv.writer(file, delimiter='\t')
-                csv_writer.writerow(headlines)
-                for i in xrange(0, len(self.videobox)):
-                    box = self.videobox[i]
-                    if len(box.box_id) > 0:
-                        for j in xrange(0, len(box.box_id)):
-                            master = []
-                            if box.box_id[j] != -1:
-                                master.append(box.timestamp)
-                                master.append(box.box_id[j])
-                                for param in box.box_Param[j][::]:
-                                    master.append(param)
-                                for param in box.features[j][::]:
-                                    master.append(param)
-                                master.append(box.annotation[j])    
-                                
-                                csv_writer.writerow(master)
-                            else:
-                                csv_writer.writerow([box.timestamp])
-                    else:
-                        csv_writer.writerow([self.time_buff[i]])
-                    
-                print ("Csv written at: ", csvFileName)   
+      
    
     def closeEvent(self, event):
         self.writeCSV()
