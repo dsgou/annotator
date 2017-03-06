@@ -3,21 +3,11 @@
 
 import os
 import csv
-import cv2
 import yaml
 import json
 import math
 import time
-import rospy
 import rosbag
-import random
-import argparse
-import textwrap
-import matplotlib
-
-from sensor_msgs.msg import Image
-from sensor_msgs.msg import CompressedImage
-from cv_bridge import CvBridge, CvBridgeError
 
 import sys
 from PyQt5.QtGui import *
@@ -25,19 +15,8 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtMultimedia import *
 from PyQt5.QtMultimediaWidgets import *
-import warnings
-import itertools
 from termcolor import colored
-import numpy as np
-from numpy import arange, sin, pi
-
-import matplotlib.transforms as transforms
-from matplotlib.widgets import Cursor
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
-from matplotlib.collections import LineCollection
-from matplotlib.colors import ListedColormap, BoundaryNorm
-
+from numpy import sin, pi
 
 #Module imports
 from gui import topicBox
@@ -262,7 +241,6 @@ class VideoWidget(QWidget):
                     stopEvent.setEnabled(False)
                     self.stopEventLabels = []
                     self.checkStopEventMenu = []
-                    self.stopEventEnabled = False
                     
                     #Initiate add Event menu
                     for label in videoGlobals.highLabels:
@@ -288,12 +266,12 @@ class VideoWidget(QWidget):
                                 if action == key:
                                     self.annotClass = videoGlobals.highLabels[i]
                                     self.annotEnabled = True
-                                    self.addEventEnabled = False
                         elif action.parent() == stopEvent:
                             for i, key in enumerate(self.stopEventLabels):
                                 if action == key:
-                                    player.videobox[frameCounter].removeEvent(box_id,self.stopEventLabels[i].text() )
-                                    self.stopEventEnabled = False
+                                    for j in xrange(frameCounter, len(player.videobox)):
+                                        player.videobox[j].removeEvent(box_id, self.stopEventLabels[i].text())
+                                    repaint = True
                         elif action.parent() == delete:
                             if action == deleteBox:
                                 player.videobox[frameCounter].removeSpecBox(index)
@@ -320,8 +298,8 @@ class VideoWidget(QWidget):
                                 self.newBoxId.show()
                             
                         if self.annotEnabled:
-                            for counter in xrange(frameCounter, len(player.videobox)):
-                                player.videobox[counter].changeClass(box_id, str(self.annotClass))
+                            for i in xrange(frameCounter, len(player.videobox)):
+                                player.videobox[i].changeClass(box_id, str(self.annotClass))
                             self.annotEnabled = False
                             repaint = True
                             
@@ -1252,19 +1230,11 @@ class boundBox(object):
 
     #Remove high level events
     def removeEvent(self, boxid, action):
-        global frameCounter
-        #boxid is the index of boxes
-        for key in self.annotation[boxid]:
-            if action == key:
-                self.annotation[boxid].remove(key)
-        frameNumber = frameCounter + 1
-        #Annotate the box at remaining frames
-        while frameNumber < len(player.videobox):
-            if boxid >= len(player.videobox[frameNumber].box_id):
-                break
-            if action in player.videobox[frameNumber].annotation[boxid]:
-                player.videobox[frameNumber].annotation[boxid].remove(action)
-            frameNumber += 1
+        if boxid in self.box_id:
+            #boxid is the index of boxes
+            for key in self.annotation[self.box_id.index(boxid)]:
+                if action == key:
+                    self.annotation[self.box_id.index(boxid)].remove(key)
 
     def calcAngle(self):
         # let's say that camera angle is 58 degrees..
