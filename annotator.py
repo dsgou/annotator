@@ -56,6 +56,7 @@ global audio_player
 global depth_player
 global video_player
 global laser_player
+global mainWindow
 
 bagFile   = None
 videoCSV  = None
@@ -70,8 +71,9 @@ laser_player   = False
 boxInitialized = False
 
 
-depthFileName = None
-rgbFileName = None
+mainWindow     = None
+rgbFileName    = None
+depthFileName  = None
 
 
 def get_bag_metadata(bag):
@@ -962,7 +964,7 @@ class VideoPlayer(QWidget):
                     self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(os.path.abspath(fileName))))
                     self.playButton.setEnabled(True)
                 rgbFileName = fileName
-                
+            mainWindow.setWindowTitle(fileName);    
         self.setWindowTitle(fileName + ' -> Annotation')
      
     
@@ -1409,8 +1411,8 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     
     player = VideoPlayer()
-    main = MainWindow(player)
-    main.show()
+    mainWindow = MainWindow(player)
+    mainWindow.show()
 
     app.exec_()
     try:
