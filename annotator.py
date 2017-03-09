@@ -964,6 +964,9 @@ class VideoPlayer(QWidget):
                     self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(os.path.abspath(fileName))))
                     self.playButton.setEnabled(True)
                 rgbFileName = fileName
+            gantChart.axes.clear()
+            gantChart.drawChart(player.videobox, framerate)
+            gantChart.draw()
             mainWindow.setWindowTitle(fileName);    
         self.setWindowTitle(fileName + ' -> Annotation')
      
