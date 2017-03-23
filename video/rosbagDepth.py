@@ -2,14 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import csv
-import yaml
 import cv2
 import os
 import rosbag
 import time
 from termcolor import colored
-from sensor_msgs.msg import Image
-from sensor_msgs.msg import CompressedImage
 from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
 import rosbagVideo

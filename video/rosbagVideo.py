@@ -2,9 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import yaml
-from sensor_msgs.msg import Image
-from sensor_msgs.msg import CompressedImage
-from cv_bridge import CvBridge, CvBridgeError
 
 """
 Gets the rosbag metadata

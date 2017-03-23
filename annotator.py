@@ -16,7 +16,6 @@ from PyQt5.QtCore import *
 from PyQt5.QtMultimedia import *
 from PyQt5.QtMultimediaWidgets import *
 from termcolor import colored
-from numpy import sin, pi
 
 #Module imports
 from gui import topicBox
@@ -1212,7 +1211,6 @@ class boundBox(object):
         self.box_Param.append(params[::])
         self.annotation.append(classify)
         self.features.append(features)
-        #self.calcAngle()
 
     def removeAllBox(self):
         self.box_id[:]     = []
@@ -1240,53 +1238,6 @@ class boundBox(object):
             for key in self.annotation[self.box_id.index(boxid)]:
                 if action == key:
                     self.annotation[self.box_id.index(boxid)].remove(key)
-
-    def calcAngle(self):
-        # let's say that camera angle is 58 degrees..
-        camAngle = 58
-        camAngleRadians = math.radians(camAngle)
-        imWidth = 640 #pixels
-
-        for index in xrange(len(self.box_Param)):
-            # CENTRALIZE camera and laser
-            # xCamera, yCamera, zCamera <--> xLaser, yLaser, zLaser IN METERS
-            # zCamera and zLaser doesn't matter
-
-            xCamera = 0
-            xLaser = 0
-
-            # Convert meters to pixels
-            # 1m = 3779.527559px ; 1px = 0.000265m
-            xCamera = xCamera * 3779.527559
-            xLaser = xLaser * 3779.527559
-            diff = xLaser - xCamera
-
-            z = (imWidth/2)/ sin(camAngleRadians/2)
-            #Construct the axis of triangle
-            MK = math.sqrt(pow(z,2) - pow(imWidth/2,2))
-            x1 = self.box_Param[index][0] + diff
-            x2 = self.box_Param[index][0] + self.box_Param[index][2] + diff
-
-            startPoint = abs(x1 - (imWidth/2))
-            x1Angle = math.atan(startPoint/MK)
-            if x1-(imWidth/2) > 0:
-                x1Angle = x1Angle + (camAngleRadians/2)
-            else:
-                x1Angle = (camAngleRadians/2) - x1Angle
-
-            endPoint = abs(x2 - (imWidth/2))
-            x2Angle = math.atan(endPoint/MK)
-            if x2-(imWidth/2) > 0:
-                x2Angle = x2Angle + (camAngleRadians/2)
-            else:
-                x2Angle = (camAngleRadians/2) - x2Angle
-
-
-            #angle = abs(math.degrees(x2Angle - x1Angle))
-
-            # angle to laser 270 degrees
-            x1 = x1 + math.radians(105)
-            x2 = x2 + math.radians(105)
 
     def copy(self, other):
         self.box_id = []

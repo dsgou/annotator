@@ -5,13 +5,10 @@ import os
 import csv
 import cv2
 import ast
-import yaml
 import subprocess
 import numpy as np
 
 from termcolor import colored
-from sensor_msgs.msg import Image
-from sensor_msgs.msg import CompressedImage
 from cv_bridge import CvBridge, CvBridgeError
 
 import rosbagVideo

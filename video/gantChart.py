@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import json
 import itertools
-from video.videoGlobals import videoGlobals
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from PyQt5.QtWidgets import QSizePolicy
+from video.videoGlobals import videoGlobals
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 
 class videoGantChart(FigureCanvas):
