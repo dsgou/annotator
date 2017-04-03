@@ -59,7 +59,6 @@ global mainWindow
 
 bagFile   = None
 videoCSV  = None
-headlines = []
 xBoxCoord = []
 frameCounter   = 0
 delete_index   = -1
@@ -68,6 +67,7 @@ depth_player   = False
 video_player   = False
 laser_player   = False
 boxInitialized = False
+headlines      = ["Timestamp", "Rect_id", "Rect_x", "Rect_y", "Rect_W", "Rect_H", "Class"]
 
 
 mainWindow     = None
@@ -1013,11 +1013,10 @@ class VideoPlayer(QWidget):
 	
     #Writes the boxes to csv
     def writeCSV(self):
-        global videoCSV
         global headlines
         global rgbFileName
         global video_player
-        if video_player and videoCSV:
+        if video_player:
             
             csvFileName = rgbFileName.replace(rgbFileName.split(".")[-1],"csv")
             with open(csvFileName, 'w') as file:
@@ -1220,6 +1219,7 @@ class boundBox(object):
 
     def removeSpecBox(self, index):
         self.box_id.pop(index)
+        self.features.pop(index)
         self.box_Param.pop(index)
         self.annotation.pop(index)
         
@@ -1241,14 +1241,18 @@ class boundBox(object):
 
     def copy(self, other):
         self.box_id = []
-        self.box_Param = []
+        self.features   = []
+        self.box_Param  = []
         self.annotation = []
+        
         for i in other.box_id:
             self.box_id.append(i)
         for i in other.box_Param:
             self.box_Param.append(i)
         for i in other.annotation:
             self.annotation.append(i)
+        for i in other.features:
+            self.features.append(i)
 
 class MainWindow(QMainWindow):
     
@@ -1336,7 +1340,7 @@ class MainWindow(QMainWindow):
     def deleteEvent(self, event):
         global bagFile
         global videoCSV
-        if bagFile and videoCSV:
+        if bagFile:
             player.videobox[frameCounter].removeAllBox()
             player.videoWidget.repaint()
     
@@ -1347,8 +1351,12 @@ class MainWindow(QMainWindow):
                 if box.box_id:
                     for j in xrange(i + 1, frameCounter + 1):
                         player.videobox[j].copy(box) 
+                        player.videobox[j].timestamp = player.time_buff[j]
                     break
             player.videoWidget.repaint()
+            gantChart.axes.clear()
+            gantChart.drawChart(player.videobox, framerate)
+            gantChart.draw()
     
     def shortcuts(self):
         self.shortcuts = videoShortcuts.videoShortCuts()

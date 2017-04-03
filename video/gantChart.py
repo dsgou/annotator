@@ -73,7 +73,7 @@ class gantShow(videoGantChart):
 
         self.axes.set_xticklabels([])
         self.axes.set_yticks(tickY)
-        self.axes.set_ylim([-1,len(boxAtYaxes)])
+        self.axes.set_ylim([-1, len(boxAtYaxes)])
         self.axes.set_yticklabels([str(index[0]) + "::" + str(index[1]).ljust(5) for index in boxAtYaxes])
         self.axes.grid(True)
 
