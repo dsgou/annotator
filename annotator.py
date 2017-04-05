@@ -851,23 +851,24 @@ class VideoPlayer(QWidget):
         global depth_player
         global video_player
         global laser_player
+        framerate = 0
                
         fileName, _ = QFileDialog.getOpenFileName(self, "Open Bag", QDir.currentPath(),"(*.bag *.avi)")
-        
         # create a messsage box for get or load data info
         if fileName:
-            if fileName.split('.')[1] == 'bag':
-                bagFile = fileName
-                try:
-                    bag = rosbag.Bag(fileName)
-                    Topics, self.duration = get_bag_metadata(bag)
-                    #Show window to select topics
-                    self.topic_window.show_topics(Topics)
-                except:
-                    self.errorMessages(0)
+	    self.videobox = []
+	    if fileName.split('.')[1] == 'bag':
+		bagFile = fileName
+		try:
+		    bag = rosbag.Bag(fileName)
+		    Topics, self.duration = get_bag_metadata(bag)
+		    #Show window to select topics
+		    self.topic_window.show_topics(Topics)
+		except:
+		    self.errorMessages(0)
                 
                 #Audio Handling
-                if self.topic_window.temp_topics[0][1] != 'Choose Topic':
+		if self.topic_window.temp_topics[0][1] != 'Choose Topic':
                     try:
                         audio_player = True
                         audioGlobals.annotations = []
@@ -889,7 +890,7 @@ class VideoPlayer(QWidget):
                     self.audioChart.draw()
             
                 #Depth Handling
-                if self.topic_window.temp_topics[1][1] != 'Choose Topic':
+		if self.topic_window.temp_topics[1][1] != 'Choose Topic':
                     depth_player = True
                     depthFileName = fileName.replace(".bag","_DEPTH.avi")
                     
@@ -901,43 +902,42 @@ class VideoPlayer(QWidget):
                 
                 #RGB Handling
                 if self.topic_window.temp_topics[2][1] != 'Choose Topic':
-                    #~ try:
-						video_player = True
-						rgbFileName = fileName.replace(".bag","_RGB.avi")
-						(self.message_count, compressed, framerate) = rosbagVideo.buffer_video_metadata(bag, self.topic_window.temp_topics[2][1])
+                    try:
+			video_player = True
+			rgbFileName = fileName.replace(".bag","_RGB.avi")
+			(self.message_count, compressed, framerate) = rosbagVideo.buffer_video_metadata(bag, self.topic_window.temp_topics[2][1])
 
-						if not os.path.isfile(rgbFileName):
-							#Get bag video metadata
-							print(colored('Getting rgb data from ROS', 'green'))
-							image_buffer = rosbagRGB.buffer_rgb_data(bag, self.topic_window.temp_topics[2][1], compressed)
-							if not image_buffer:
-								raise Exception(8)
-							result  = rosbagRGB.write_rgb_video(rgbFileName, image_buffer, framerate)
-							if not result:
-								raise Exception(2)
-						
-						(self.duration, framerate, self.message_count) =  rosbagRGB.get_metadata(rgbFileName)
-						
-						# just fill time buffer in case that video exists
-						start_time = None
-						for topic, msg, t in bag.read_messages(topics=[self.topic_window.temp_topics[2][1]]):
-							if not start_time:
-								start_time = t.to_sec()
-							time = t.to_sec() - start_time
-							self.videobox.append(boundBox(time))
-                        
-                        
-						if self.rgbButton:
-							self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(os.path.abspath(rgbFileName))))
-							self.playButton.setEnabled(True)
-						elif self.depthButton:
-							self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(os.path.abspath(depthFileName))))
-							self.playButton.setEnabled(True) 
+			if not os.path.isfile(rgbFileName):
+				#Get bag video metadata
+				print(colored('Getting rgb data from ROS', 'green'))
+				image_buffer = rosbagRGB.buffer_rgb_data(bag, self.topic_window.temp_topics[2][1], compressed)
+				if not image_buffer:
+					raise Exception(8)
+				result  = rosbagRGB.write_rgb_video(rgbFileName, image_buffer, framerate)
+				if not result:
+					raise Exception(2)
+			
+			(self.duration, framerate, self.message_count) =  rosbagRGB.get_metadata(rgbFileName)
+			
+			# just fill time buffer in case that video exists
+			start_time = None
+			for topic, msg, t in bag.read_messages(topics=[self.topic_window.temp_topics[2][1]]):
+				if not start_time:
+					start_time = t.to_sec()
+				time = t.to_sec() - start_time
+				self.videobox.append(boundBox(time))
+				
+			if self.rgbButton:
+				self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(os.path.abspath(rgbFileName))))
+				self.playButton.setEnabled(True)
+			elif self.depthButton:
+				self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(os.path.abspath(depthFileName))))
+				self.playButton.setEnabled(True) 
                             
                         
-                    #~ except Exception as e:
-                        #~ print(e)
-                        #~ self.errorMessages(e[0])	
+                    except Exception as e:
+                        print(e)
+                        self.errorMessages(e[0])	
                 #Laser Topic selection
                 if self.topic_window.temp_topics[3][1] != 'Choose Topic':
                     try:
@@ -949,7 +949,7 @@ class VideoPlayer(QWidget):
             else:
                 video_player = True
                 self.duration, framerate, self.message_count  =  rosbagRGB.get_metadata(fileName)
-                self.videobox = [boundBox(count) for count in xrange(int(self.message_count))] 
+                self.videobox = [boundBox(count/framerate) for count in xrange(int(self.message_count))] 
                 
                 if self.rgbButton:
                     self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(os.path.abspath(fileName))))
@@ -958,7 +958,7 @@ class VideoPlayer(QWidget):
             gantChart.axes.clear()
             gantChart.drawChart(player.videobox, framerate)
             gantChart.draw()
-            mainWindow.setWindowTitle(fileName);    
+            mainWindow.setWindowTitle(fileName)    
         self.setWindowTitle(fileName + ' -> Annotation')
      
     
