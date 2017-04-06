@@ -46,9 +46,8 @@ def buffer_rgb_data(bag, input_topic, compressed):
             cv_image = cv2.imdecode(nparr, cv2.CV_LOAD_IMAGE_COLOR)
 	
         image_buff.append(cv_image)
-        time_buff.append(t.to_sec() - start_time.to_sec())
 
-    return image_buff, time_buff
+    return image_buff
   
 """
 Buffers csv data for the video module, a.k.a. bounded boxes and 
