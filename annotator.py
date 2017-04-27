@@ -35,10 +35,6 @@ from video import rosbagRGB
 from video import rosbagVideo
 from video import gantChart
 from video.videoGlobals import videoGlobals
-
-from laser import laserGlobals
-from laser import rosbagLaser
-from laser import graphicalInterfaceLaser as gL
 ''''''''''''''''''''''''''''''''''''
 
 
@@ -53,7 +49,6 @@ global delete_index
 global audio_player
 global depth_player
 global video_player
-global laser_player
 global mainWindow
 
 bagFile   = None
@@ -64,7 +59,6 @@ delete_index   = -1
 audio_player   = False
 depth_player   = False
 video_player   = False
-laser_player   = False
 boxInitialized = False
 headlines      = ["Timestamp", "Rect_id", "Rect_x", "Rect_y", "Rect_W", "Rect_H", "Class"]
 
@@ -80,7 +74,6 @@ def get_bag_metadata(bag):
     topics =  info_dict['topics']
     
     for top in topics:
-        #print "\t- ", top["topic"], "\n\t\t-Type: ", top["type"],"\n\t\t-Fps: ", top["frequency"]
         topics_list.append(top["topic"])
     topics_list = sorted(set(topics_list))
     duration = info_dict['duration']
@@ -324,18 +317,11 @@ class VideoWidget(QWidget):
         rectPainter  = QPainter()
         boxIdPainter = QPainter()
         
+       
         if (self.surface.isActive()):
-            videoRect = QRegion(self.surface.videoRect())
-            if not videoRect.contains(event.rect()):
-                region = event.region()
-                region.subtracted(videoRect)
-                brush = self.palette().background()
-                for rect in region.rects():
-                    painter.fillRect(rect, brush)
             self.surface.paint(painter)
         else:
             painter.fillRect(event.rect(), self.palette().window())
-        
         
         if len(player.videobox) > 0 and frameCounter < len(player.videobox):
             for i in xrange(len(player.videobox[frameCounter].box_id)):
@@ -489,18 +475,14 @@ class VideoPlayer(QWidget):
         self.topic_window = topicBox.TopicBox()
         
         # >> DEFINE WIDGETS OCJECTS
-        # >> VIDEO - DEPTH - AUDIO - LASER - GANTT CHART
+        # >> VIDEO - DEPTH - AUDIO - GANTT CHART
         #----------------------
         self.videoWidget = VideoWidget()
-        self.laserScan = gL.LS()
-
-        #Set Fix Size at Video Widget and LaserScan
-        self.laserScan.setFixedSize(640, 480)
         self.videoWidget.setFixedSize(640, 480)
 
         #Video buttons
         videoLayout = self.createVideoButtons()
-        
+                
         #Video Gantt Chart
         self.gantt = gantChart.gantShow()
         gantChart = self.gantt
@@ -510,17 +492,11 @@ class VideoPlayer(QWidget):
         #Create Slider
         self.createSlider()
         
-        #Laser buttons
-        scanLayout = QHBoxLayout()
-        scanLayout.addWidget(self.laserScan)
-        layoutLaser = self.createLaserButtons(scanLayout)
-        
         self.controlEnabled = False
 
-        #Specify video-laser layout align
+        #Specify video layout align
         laserAndVideoLayout = QHBoxLayout()
         laserAndVideoLayout.addLayout(videoLayout)
-        laserAndVideoLayout.addLayout(layoutLaser)
 
         #Audio Player buttons
         buttonLayoutAudio = self.createAudioButtons()
@@ -617,7 +593,6 @@ class VideoPlayer(QWidget):
         global audio_player
         global depth_player
         global video_player
-        global laser_player
         
         if enabled:
             self. depthEnable = False
@@ -629,8 +604,6 @@ class VideoPlayer(QWidget):
             if audio_player:
                 self.player.setPosition(position)
                 self.audioPlay()
-            if laser_player:
-                self.laserPlay()
             self.playButton.setEnabled(True)
 
     def depth(self, enabled):
@@ -638,7 +611,6 @@ class VideoPlayer(QWidget):
         global audio_player
         global depth_player
         global video_player
-        global laser_player
 
         if enabled:
             self.rgbEnable = False
@@ -651,8 +623,6 @@ class VideoPlayer(QWidget):
             if audio_player:
                 self.player.setPosition(position)
                 self.audioPlay()
-            if laser_player:
-                self.laserPlay()
             self.playButton.setEnabled(True)
     
     def previousFrame(self):
@@ -760,83 +730,6 @@ class VideoPlayer(QWidget):
         if self.time_ >= self.end:
             self.audioStop()
             self.player.setPosition(self.start)
-            
-    #LASER BUTTON FUNCTIONS
-    def createLaserButtons(self, scanLayout):
-        
-        playButtonLaser      = QPushButton()
-        stopButtonLaser      = QPushButton()
-        pauseButtonLaser     = QPushButton()
-        prevFrameButtonLaser = QPushButton()
-        nextFrameButtonLaser = QPushButton()
-        
-        playButtonLaser.setIcon(self.style().standardIcon(QStyle.SP_MediaPlay))
-        stopButtonLaser.setIcon(self.style().standardIcon(QStyle.SP_MediaStop))
-        pauseButtonLaser.setIcon(self.style().standardIcon(QStyle.SP_MediaPause))
-        prevFrameButtonLaser.setIcon(self.style().standardIcon(QStyle.SP_MediaSeekBackward))
-        nextFrameButtonLaser.setIcon(self.style().standardIcon(QStyle.SP_MediaSeekForward))
-
-        buttonLayoutLaser = QHBoxLayout()
-        buttonLayoutLaser.addWidget(playButtonLaser)
-        buttonLayoutLaser.addWidget(pauseButtonLaser)
-        buttonLayoutLaser.addWidget(prevFrameButtonLaser)
-        buttonLayoutLaser.addWidget(nextFrameButtonLaser)
-        buttonLayoutLaser.addWidget(stopButtonLaser)
-        buttonLayoutLaser.setAlignment(Qt.AlignLeft)
-
-
-        #Define Connections
-        playButtonLaser.clicked.connect(self.laserPlay)
-        pauseButtonLaser.clicked.connect(self.laserPause)
-        prevFrameButtonLaser.clicked.connect(self.laserPrevious)
-        nextFrameButtonLaser.clicked.connect(self.laserNext)
-        stopButtonLaser.clicked.connect(self.laserStop)
-        
-        self.controlLaser = QHBoxLayout()
-        self.controlLaser.addLayout(buttonLayoutLaser)
-        self.controlLaser.addLayout(self.label)
-        
-        
-        laserClass = QHBoxLayout()
-        laserClass.addLayout(scanLayout)
-
-        layoutLaser = QVBoxLayout()
-        layoutLaser.addLayout(laserClass)
-        layoutLaser.addLayout(self.controlLaser)
-        
-        return layoutLaser
-    
-    def laserPlay(self):
-        self.laserScan.ptime()
-        laserGlobals.scan_widget = self.laserScan
-
-    def laserPause(self):
-        laserGlobals.timer.stop()
-
-    def laserPrevious(self):
-        if (laserGlobals.cnt>0):
-            laserGlobals.cnt = laserGlobals.cnt-1
-            laserGlobals.ok = 'Yes'
-            laserGlobals.scan_widget.drawLaserScan()
-        else:
-            laserGlobals.ok = 'No'
-            laserGlobals.scan_widget.drawLaserScan()
-
-    def laserNext(self):
-        colour_index = 0
-        if (laserGlobals.cnt<len(laserGlobals.annot)):
-            laserGlobals.cnt = laserGlobals.cnt+1
-            laserGlobals.ok = 'Yes'
-            laserGlobals.scan_widget.drawLaserScan()
-        else:
-            laserGlobals.ok = 'No'
-            laserGlobals.scan_widget.drawLaserScan()
-
-    def laserStop(self):
-        laserGlobals.cnt = 0
-        laserGlobals.timer.stop()
-        self.laserScan.axes.clear()
-        self.laserScan.draw()
 
     def videoPosition(self):
         self.videoTime = self.mediaPlayer.position()
@@ -850,10 +743,9 @@ class VideoPlayer(QWidget):
         global audio_player
         global depth_player
         global video_player
-        global laser_player
         framerate = 0
                
-        fileName, _ = QFileDialog.getOpenFileName(self, "Open Bag", QDir.currentPath(),"(*.bag *.avi)")
+        fileName, _ = QFileDialog.getOpenFileName(self, "Open Bag", QDir.currentPath(),"(*.bag *.avi *.mp4)")
         # create a messsage box for get or load data info
         if fileName:
 	    self.videobox = []
@@ -938,14 +830,7 @@ class VideoPlayer(QWidget):
                     except Exception as e:
                         print(e)
                         self.errorMessages(e[0])	
-                #Laser Topic selection
-                if self.topic_window.temp_topics[3][1] != 'Choose Topic':
-                    try:
-                        laser_player = True
-                        rosbagLaser.runMain(bag, str(fileName),self.topic_window.temp_topics[3][1])
-                        pass
-                    except:
-                        self.errorMessages(9)
+                
             else:
                 video_player = True
                 self.duration, framerate, self.message_count  =  rosbagRGB.get_metadata(fileName)
@@ -1066,9 +951,6 @@ class VideoPlayer(QWidget):
         elif index == 8:
             msgBox.setWindowTitle("Open rosbag")
             msgBox.setText("Incorrect RGB Topic")
-        elif index == 9:
-            msgBox.setWindowTitle("Open rosbag")
-            msgBox.setText("Incorrect Laser Topic")
         elif index == 10:
             msgBox.setWindowTitle("Open CSV")
             msgBox.setText("You must select a rosbag first")
@@ -1081,15 +963,12 @@ class VideoPlayer(QWidget):
         global audio_player
         global depth_player
         global video_player
-        global laser_player
         
         if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
             self.videoPosition()
             self.mediaPlayer.pause()
             if audio_player:
                 self.audioPause()
-            if laser_player:
-                self.laserPause()
             self.time_ = self.positionSlider
 
         else:
@@ -1100,8 +979,6 @@ class VideoPlayer(QWidget):
                 self.audioPlay()
             if video_player:
                 self.mediaPlayer.play()
-            if laser_player:
-                self.laserPlay()
 
         # >> Get slider position for bound box
         posSlider = self.positionSlider.value()
@@ -1120,7 +997,6 @@ class VideoPlayer(QWidget):
         self.positionSlider.setValue(position)
         self.positionSlider.setToolTip(str(time) + ' sec')
         self.timelabel.setText(self.label_tmp.format('Time: ' + str(time) + '/ ' + str("{0:.2f}".format(self.duration)) + ' sec'))
-        laserGlobals.cnt = position/100
 
     def keyPressEvent(self,event):
         if event.key() == Qt.Key_Control:
@@ -1138,7 +1014,6 @@ class VideoPlayer(QWidget):
         global audio_player
         global depth_player
         global video_player
-        global laser_player
         
         frameCounter = int(round(self.message_count * position/(self.duration * 1000)))
         if frameCounter >= self.message_count:
