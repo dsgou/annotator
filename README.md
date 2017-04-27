@@ -1,16 +1,12 @@
 # multimedia-annotator
 
 Annotate video either in common formats or rosbags.
-Annotate video(RGB and depth), audio and laser measurements stored in rosbags.
+Annotate video and audio stored in rosbags.
 
 ## Installation
  * Dependencies
  
-   * ros-kinetic-rospy
-   * ros-kinetic-cv-bridge
-   * ros-kinetic-vision-opencv
-   * ros-kinetic-image-geometry
-   * ros-kinetic-python-qt-binding
+   * rosbag
    * python-pyqt5
    * python-pyqt5.qtmultimedia
    * libqt5multimedia5

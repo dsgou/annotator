@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 import roslib
 import cv2
-#audio packages
-#import audio_common_msgs
-#from cv_bridge import CvBridge, CvBridgeError
-#import rospy
+
 from std_msgs.msg import String
 import signal
 import os
@@ -95,6 +92,14 @@ def mp3_to_wav(mp3Path, frequency):
     subprocess.call(['ffmpeg', '-i', mp3Path, '-y', '-ar', '16000', '-ac', '1', wavFileName])
     return wavFileName
 
+#convert mp4 to wav
+def mp4_to_wav(mp3Path, frequency):
+    #call arg not file...
+    wavFileName = mp3Path.replace(".mp4",".wav")
+    #write 1.6 kHz
+    subprocess.call(['ffmpeg', '-i', mp3Path,'-y', '-vn', '-f', 'wav', wavFileName])
+    return wavFileName
+
 #play wav file
 def play_wav(wavFileName):
     #-nodisp   : display not in new window
@@ -128,25 +133,36 @@ def createWaveform(wavFileName):
 
 
 #main
-def runMain(bag, bagFileName):
-    #read bag file
-    audioGlobals.bagFile = bagFileName
-
-    audioFileName = bagFileName.replace(".bag",".wav")
-    if os.path.isfile(audioFileName):
-        print colored('Load WAV File', 'yellow')
-        audioGlobals.wavFileName =  audioFileName
-        audioGlobals.saveAudio = True
+def runMain(bag, fileName):
+    
+    if bag:
+        #read bag file
+        audioGlobals.bagFile = fileName
+    
+        audioFileName = fileName.replace(".bag",".wav")
+        if os.path.isfile(audioFileName):
+            print colored('Load WAV File', 'yellow')
+            audioGlobals.wavFileName =  audioFileName
+            audioGlobals.saveAudio = True
+        else:
+            print colored('Get audio data from ROS', 'green')
+            audioData, frequency = audio_bag_file(bag) 
+            # get audio data 
+            mp3FileName = write_mp3_file(audioData, audioGlobals.bagFile)
+            audioGlobals.wavFileName = mp3_to_wav(mp3FileName, frequency)
+            audioGlobals.saveAudio = False
     else:
-        print colored('Get audio data from ROS', 'green')
-        audioData, frequency = audio_bag_file(bag) 
-        # get audio data 
-        mp3FileName = write_mp3_file(audioData, audioGlobals.bagFile)
-        audioGlobals.wavFileName = mp3_to_wav(mp3FileName, frequency)
+        name, extension =  os.path.splitext(fileName)
         audioGlobals.saveAudio = False
+        if extension == ".wav":
+            print colored('Load WAV File', 'yellow')
+            audioGlobals.wavFileName = audioFileName
+        elif extension == ".mp3":
+            audioGlobals.wavFileName = mp3_to_wav(fileName, 16000)
+        elif extension == ".mp4":
+            audioGlobals.wavFileName = mp4_to_wav(fileName, 16000)
+
     runFunction.run(audioGlobals.wavFileName, audioGlobals.bagFile)
-
-
     
 
 
