@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+# -*- coding: utf-8 -*-
 
 import os
 import csv
@@ -47,6 +48,7 @@ global videoCSV
 global headlines
 global frameCounter
 global boxInitialized
+global xBoxCoord
 global BasicTopics
 global delete_index
 global audio_player
@@ -79,6 +81,7 @@ def get_bag_metadata(bag):
     topics =  info_dict['topics']
     
     for top in topics:
+        #print "\t- ", top["topic"], "\n\t\t-Type: ", top["type"],"\n\t\t-Fps: ", top["frequency"]
         topics_list.append(top["topic"])
     topics_list = sorted(set(topics_list))
     duration = info_dict['duration']
@@ -322,11 +325,18 @@ class VideoWidget(QWidget):
         rectPainter  = QPainter()
         boxIdPainter = QPainter()
         
-       
         if (self.surface.isActive()):
+            videoRect = QRegion(self.surface.videoRect())
+            if not videoRect.contains(event.rect()):
+                region = event.region()
+                region.subtracted(videoRect)
+                brush = self.palette().background()
+                for rect in region.rects():
+                    painter.fillRect(rect, brush)
             self.surface.paint(painter)
         else:
             painter.fillRect(event.rect(), self.palette().window())
+        
         
         if len(player.videobox) > 0 and frameCounter < len(player.videobox):
             for i in xrange(len(player.videobox[frameCounter].box_id)):
@@ -414,7 +424,10 @@ class VideoWidget(QWidget):
                             y = event.pos().y()
                         w = abs(event.pos().x() - QPoint.pos1.x())
                         h = abs(event.pos().y() - QPoint.pos1.y())
-                        timeId = player.videobox[frameCounter].timestamp
+                        if player.videobox[frameCounter].timestamp is not None:
+                            timeId = player.videobox[frameCounter].timestamp
+                        else:
+                            timeId = player.time_buff[frameCounter]
                         player.videobox[frameCounter].addBox(timeId, None, [x,y,w,h], ['Clear'], [])
                     self.repaint()
             self.moved = False
@@ -471,6 +484,7 @@ class VideoPlayer(QWidget):
         self.videobox       = []
         self.box_buffer     = []
         self.metric_buffer  = []
+        self.time_buff      = []
         
         #Audio variables
         self.player = QMediaPlayer()
@@ -483,15 +497,14 @@ class VideoPlayer(QWidget):
         # >> VIDEO - DEPTH - AUDIO - LASER - GANTT CHART
         #----------------------
         self.videoWidget = VideoWidget()
+        self.laserScan = gL.LS()
+
+        #Set Fix Size at Video Widget and LaserScan
+        self.laserScan.setFixedSize(640, 480)
         self.videoWidget.setFixedSize(640, 480)
 
         #Video buttons
         videoLayout = self.createVideoButtons()
-        
-        #Set Fix Size at Video Widget and LaserScan
-        self.laserScan = gL.LS()
-        self.laserScan.setFixedSize(640, 480)
-
         
         #Video Gantt Chart
         self.gantt = gantChart.gantShow()
@@ -843,24 +856,24 @@ class VideoPlayer(QWidget):
         global depth_player
         global video_player
         global laser_player
-        framerate = 0
+        start_time = None
                
-        fileName, _ = QFileDialog.getOpenFileName(self, "Open Bag", QDir.currentPath(),"(*.bag *.avi *.mp4)")
+        fileName, _ = QFileDialog.getOpenFileName(self, "Open Bag", QDir.currentPath(),"(*.bag *.avi)")
+        
         # create a messsage box for get or load data info
         if fileName:
-	    self.videobox = []
-	    if fileName.split('.')[1] == 'bag':
-		bagFile = fileName
-		try:
-		    bag = rosbag.Bag(fileName)
-		    Topics, self.duration = get_bag_metadata(bag)
-		    #Show window to select topics
-		    self.topic_window.show_topics(Topics)
-		except:
-		    self.errorMessages(0)
+            if fileName.split('.')[1] == 'bag':
+                bagFile = fileName
+                try:
+                    bag = rosbag.Bag(fileName)
+                    Topics, self.duration = get_bag_metadata(bag)
+                    #Show window to select topics
+                    self.topic_window.show_topics(Topics)
+                except:
+                    self.errorMessages(0)
                 
                 #Audio Handling
-		if self.topic_window.temp_topics[0][1] != 'Choose Topic':
+                if self.topic_window.temp_topics[0][1] != 'Choose Topic':
                     try:
                         audio_player = True
                         audioGlobals.annotations = []
@@ -882,7 +895,7 @@ class VideoPlayer(QWidget):
                     self.audioChart.draw()
             
                 #Depth Handling
-		if self.topic_window.temp_topics[1][1] != 'Choose Topic':
+                if self.topic_window.temp_topics[1][1] != 'Choose Topic':
                     depth_player = True
                     depthFileName = fileName.replace(".bag","_DEPTH.avi")
                     
@@ -895,36 +908,39 @@ class VideoPlayer(QWidget):
                 #RGB Handling
                 if self.topic_window.temp_topics[2][1] != 'Choose Topic':
                     try:
-			video_player = True
-			rgbFileName = fileName.replace(".bag","_RGB.avi")
-			(self.message_count, compressed, framerate) = rosbagVideo.buffer_video_metadata(bag, self.topic_window.temp_topics[2][1])
-
-			if not os.path.isfile(rgbFileName):
-				#Get bag video metadata
-				print(colored('Getting rgb data from ROS', 'green'))
-				image_buffer = rosbagRGB.buffer_rgb_data(bag, self.topic_window.temp_topics[2][1], compressed)
-				if not image_buffer:
-					raise Exception(8)
-				result  = rosbagRGB.write_rgb_video(rgbFileName, image_buffer, framerate)
-				if not result:
-					raise Exception(2)
-			
-			(self.duration, framerate, self.message_count) =  rosbagRGB.get_metadata(rgbFileName)
-			
-			# just fill time buffer in case that video exists
-			start_time = None
-			for topic, msg, t in bag.read_messages(topics=[self.topic_window.temp_topics[2][1]]):
-				if not start_time:
-					start_time = t.to_sec()
-				time = t.to_sec() - start_time
-				self.videobox.append(boundBox(time))
-				
-			if self.rgbButton:
-				self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(os.path.abspath(rgbFileName))))
-				self.playButton.setEnabled(True)
-			elif self.depthButton:
-				self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(os.path.abspath(depthFileName))))
-				self.playButton.setEnabled(True) 
+                        video_player = True
+                        rgbFileName = fileName.replace(".bag","_RGB.avi")
+                        (self.message_count, compressed, framerate) = rosbagVideo.buffer_video_metadata(bag, self.topic_window.temp_topics[2][1])
+                        
+                            
+                        if os.path.isfile(rgbFileName):
+                            print(colored('Loaded RGB video', 'yellow'))
+                        
+                            # just fill time buffer in case that video exists
+                            for topic, msg, t in bag.read_messages(topics=[self.topic_window.temp_topics[2][1]]):
+                                if start_time is None:
+                                    start_time = t
+                                self.time_buff.append(t.to_sec() - start_time.to_sec())
+                        else:
+                            #Get bag video metadata
+                            print(colored('Getting rgb data from ROS', 'green'))
+                            (image_buffer, self.time_buff) = rosbagRGB.buffer_rgb_data(bag, self.topic_window.temp_topics[2][1], compressed)
+                            if not image_buffer:
+                                raise Exception(8)
+                        
+                            result  = rosbagRGB.write_rgb_video(rgbFileName, image_buffer, framerate)
+                            if not result:
+                                raise Exception(2)
+                                
+                        self.duration, framerate, self.message_count =  rosbagRGB.get_metadata(rgbFileName)
+                        self.videobox = [boundBox(count) for count in xrange(int(self.message_count))] 
+                        
+                        if self.rgbButton:
+                            self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(os.path.abspath(rgbFileName))))
+                            self.playButton.setEnabled(True)
+                        elif self.depthButton:
+                            self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(os.path.abspath(depthFileName))))
+                            self.playButton.setEnabled(True) 
                             
                         
                     except Exception as e:
@@ -941,7 +957,7 @@ class VideoPlayer(QWidget):
             else:
                 video_player = True
                 self.duration, framerate, self.message_count  =  rosbagRGB.get_metadata(fileName)
-                self.videobox = [boundBox(count/framerate) for count in xrange(int(self.message_count))] 
+                self.videobox = [boundBox(count) for count in xrange(int(self.message_count))] 
                 
                 if self.rgbButton:
                     self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(os.path.abspath(fileName))))
@@ -950,7 +966,7 @@ class VideoPlayer(QWidget):
             gantChart.axes.clear()
             gantChart.drawChart(player.videobox, framerate)
             gantChart.draw()
-            mainWindow.setWindowTitle(fileName)    
+            mainWindow.setWindowTitle(fileName);    
         self.setWindowTitle(fileName + ' -> Annotation')
      
     
@@ -1025,7 +1041,7 @@ class VideoPlayer(QWidget):
                             else:
                                 csv_writer.writerow([box.timestamp])
                     else:
-						csv_writer.writerow([box.timestamp])
+                        csv_writer.writerow([box.timestamp])
                     
                 print ("Csv written at: ", csvFileName) 
                 
@@ -1166,10 +1182,12 @@ class VideoPlayer(QWidget):
 
     
 #Holds the bound box parameters
-class boundBox():
-	
-    def __init__(self, time):
-        self.timestamp  = time
+class boundBox(object):
+    def __init__(self, parent=None):
+        global xBoxCoord
+
+        super(boundBox, self).__init__()
+        self.timestamp  = None
         self.box_id     = []
         self.box_Param  = []
         self.features   = []
@@ -1333,6 +1351,7 @@ class MainWindow(QMainWindow):
                 if box.box_id:
                     for j in xrange(i + 1, frameCounter + 1):
                         player.videobox[j].copy(box) 
+                        player.videobox[j].timestamp = player.time_buff[j]
                     break
             player.videoWidget.repaint()
             gantChart.axes.clear()

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 import os
 import csv
@@ -23,11 +22,9 @@ Input:
 
 Output:
         -image_buff : list of image frames
-        -time_buff  : list of time frames corresponding to each image
 """
 def buffer_rgb_data(bag, input_topic, compressed):
     image_buff = []
-    time_buff  = []
     start_time = None
     bridge     = CvBridge()
     #Buffer the images, timestamps from the rosbag
@@ -141,6 +138,8 @@ def write_rgb_video(rgbFileName, image_buffer, framerate):
 	return result
 
 def get_metadata(input_video):
+    input_video = input_video.replace(" ", "\ ")
+    
     result = subprocess.Popen('ffprobe -i ' + str(input_video) + ' -show_entries format=duration -v quiet -of csv="p=0"', stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
     duration = float(result.communicate()[0])
     result = subprocess.Popen('ffprobe -v error -select_streams v:0 -show_entries stream=avg_frame_rate -of default=noprint_wrappers=1:nokey=1 ' + str(input_video), stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
