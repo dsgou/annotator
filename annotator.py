@@ -30,7 +30,6 @@ from audio import saveAudioSegments
 from audio.audioGlobals import audioGlobals
 from audio.graphicalInterfaceAudio import ApplicationWindow
 
-from video import rosbagDepth
 from video import rosbagRGB
 from video import rosbagVideo
 from video import gantChart
@@ -47,7 +46,6 @@ global boxInitialized
 global BasicTopics
 global delete_index
 global audio_player
-global depth_player
 global video_player
 global mainWindow
 
@@ -57,7 +55,6 @@ xBoxCoord = []
 frameCounter   = 0
 delete_index   = -1
 audio_player   = False
-depth_player   = False
 video_player   = False
 boxInitialized = False
 headlines      = ["Timestamp", "Rect_id", "Rect_x", "Rect_y", "Rect_W", "Rect_H", "Class"]
@@ -65,7 +62,6 @@ headlines      = ["Timestamp", "Rect_id", "Rect_x", "Rect_y", "Rect_W", "Rect_H"
 
 mainWindow     = None
 rgbFileName    = None
-depthFileName  = None
 
 
 def get_bag_metadata(bag):
@@ -475,7 +471,7 @@ class VideoPlayer(QWidget):
         self.topic_window = topicBox.TopicBox()
         
         # >> DEFINE WIDGETS OCJECTS
-        # >> VIDEO - DEPTH - AUDIO - GANTT CHART
+        # >> VIDEO - AUDIO - GANTT CHART
         #----------------------
         self.videoWidget = VideoWidget()
         self.videoWidget.setFixedSize(640, 480)
@@ -545,17 +541,7 @@ class VideoPlayer(QWidget):
         self.playButton.setIcon(self.style().standardIcon(QStyle.SP_MediaPlay))
         self.playButton.clicked.connect(self.play)
 
-        # >> radio button for Depth or RGB
-        #----------------------
-        self.rgbButton = QRadioButton("RGB")
-        self.rgbButton.setChecked(True)
-        self.rgbButton.toggled.connect(self.rgbVideo)
-        self.rgbButton.setEnabled(False)
-
-        self.depthButton = QRadioButton("Depth")
-        self.depthButton.toggled.connect(self.depth)
-        self.depthButton.setEnabled(False)
-        
+              
         self.previousButton = QPushButton()
         self.previousButton.setIcon(self.style().standardIcon(QStyle.SP_MediaSeekBackward))
         self.previousButton.setShortcut(QKeySequence(Qt.ALT + Qt.Key_A))
@@ -574,8 +560,6 @@ class VideoPlayer(QWidget):
         self.controlLayout.addWidget(self.playButton)
         self.controlLayout.addWidget(self.previousButton)
         self.controlLayout.addWidget(self.nextButton)
-        self.controlLayout.addWidget(self.rgbButton)
-        self.controlLayout.addWidget(self.depthButton)
         self.controlLayout.setAlignment(Qt.AlignLeft)
         videoLayout = QVBoxLayout()
         videoLayout.addWidget(self.videoWidget)
@@ -587,43 +571,6 @@ class VideoPlayer(QWidget):
         self.mediaPlayer.pause()
         self.Pause()
 
-    #VIDEO SWITCH RGB <-> Depth
-    def rgbVideo(self, enabled):
-        global rgbFileName
-        global audio_player
-        global depth_player
-        global video_player
-        
-        if enabled:
-            self. depthEnable = False
-            self.rgbEnable = True
-            position = self.mediaPlayer.position()
-            self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(os.path.abspath(rgbFileName))))
-            self.mediaPlayer.setPosition(position)
-            self.mediaPlayer.play()
-            if audio_player:
-                self.player.setPosition(position)
-                self.audioPlay()
-            self.playButton.setEnabled(True)
-
-    def depth(self, enabled):
-        global depthFileName
-        global audio_player
-        global depth_player
-        global video_player
-
-        if enabled:
-            self.rgbEnable = False
-            self.depthEnable = True
-            position = self.mediaPlayer.position()
-            if depth_player:
-                self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(os.path.abspath(depthFileName))))
-                self.mediaPlayer.setPosition(position)
-                self.mediaPlayer.play()
-            if audio_player:
-                self.player.setPosition(position)
-                self.audioPlay()
-            self.playButton.setEnabled(True)
     
     def previousFrame(self):
         global frameCounter
@@ -737,11 +684,9 @@ class VideoPlayer(QWidget):
     def openFile(self):
         global framerate
         global bagFile
-        global depthFileName
         global rgbFileName
         global Topics
         global audio_player
-        global depth_player
         global video_player
         framerate = 0
                
@@ -781,16 +726,6 @@ class VideoPlayer(QWidget):
                     self.audioChart.drawChart()
                     self.audioChart.draw()
             
-                #Depth Handling
-		if self.topic_window.temp_topics[1][1] != 'Choose Topic':
-                    depth_player = True
-                    depthFileName = fileName.replace(".bag","_DEPTH.avi")
-                    
-                    try:
-                        (self.message_count, compressed, framerate) = rosbagVideo.buffer_video_metadata(bag, self.topic_window.temp_topics[1][1])
-                        rosbagDepth.write_depth_video(bag, depthFileName, self.topic_window.temp_topics[1][1])
-                    except:
-                        self.errorMessages(7)
                 
                 #RGB Handling
                 if self.topic_window.temp_topics[2][1] != 'Choose Topic':
@@ -818,13 +753,7 @@ class VideoPlayer(QWidget):
 					start_time = t.to_sec()
 				time = t.to_sec() - start_time
 				self.videobox.append(boundBox(time))
-				
-			if self.rgbButton:
-				self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(os.path.abspath(rgbFileName))))
-				self.playButton.setEnabled(True)
-			elif self.depthButton:
-				self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(os.path.abspath(depthFileName))))
-				self.playButton.setEnabled(True) 
+		 
                             
                         
                     except Exception as e:
@@ -835,10 +764,8 @@ class VideoPlayer(QWidget):
                 video_player = True
                 self.duration, framerate, self.message_count  =  rosbagRGB.get_metadata(fileName)
                 self.videobox = [boundBox(count/framerate) for count in xrange(int(self.message_count))] 
-                
-                if self.rgbButton:
-                    self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(os.path.abspath(fileName))))
-                    self.playButton.setEnabled(True)
+                self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(os.path.abspath(fileName))))
+                self.playButton.setEnabled(True)
                 rgbFileName = fileName
             gantChart.axes.clear()
             gantChart.drawChart(player.videobox, framerate)
@@ -858,7 +785,7 @@ class VideoPlayer(QWidget):
         
         if rgbFileName is not None:
             
-            # OPEN VIDEO - DEPTH - AUDIO
+            # OPEN VIDEO - AUDIO
             fileName,_ =  QFileDialog.getOpenFileName(self, "Open Csv ", os.path.dirname(os.path.abspath(rgbFileName)),"(*.csv)")
             if fileName:
                 videoCSV = fileName
@@ -945,9 +872,6 @@ class VideoPlayer(QWidget):
         elif index == 6:
             msgBox.setWindowTitle("Open rosbag")
             msgBox.setText("Incorrect Audio Topic")
-        elif index == 7:
-            msgBox.setWindowTitle("Open rosbag")
-            msgBox.setText("Incorrect Depth Topic")
         elif index == 8:
             msgBox.setWindowTitle("Open rosbag")
             msgBox.setText("Incorrect RGB Topic")
@@ -961,7 +885,6 @@ class VideoPlayer(QWidget):
     def play(self):
         global frameCounter
         global audio_player
-        global depth_player
         global video_player
         
         if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
@@ -1012,13 +935,12 @@ class VideoPlayer(QWidget):
     def setPosition(self, position):
         global frameCounter
         global audio_player
-        global depth_player
         global video_player
         
         frameCounter = int(round(self.message_count * position/(self.duration * 1000)))
         if frameCounter >= self.message_count:
             frameCounter = self.message_count - 1 
-        if video_player or depth_player:
+        if video_player:
             self.mediaPlayer.setPosition(position)
         if audio_player:
             self.player.setPosition(position)
