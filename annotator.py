@@ -56,6 +56,8 @@ video_player   = False
 boxInitialized = False
 headlines      = ["Timestamp", "Rect_id", "Rect_x", "Rect_y", "Rect_W", "Rect_H", "Class"]
 
+audio_extensions = [".wav", ".mp3"]
+video_extensions = [".avi", ".mp4", ".mkv"]
 
 mainWindow     = None
 rgbFileName    = None
@@ -445,6 +447,7 @@ class VideoPlayer(QWidget):
         
         super(VideoPlayer, self).__init__(parent)
         self.mediaPlayer = QMediaPlayer(None, QMediaPlayer.VideoSurface)
+        self.mediaPlayer.setVolume(0)
         
         #Parse json file
         videoGlobals.classLabels, videoGlobals.highLabels, videoGlobals.annotationColors, videoGlobals.eventColors = self.parseJson()
@@ -673,7 +676,9 @@ class VideoPlayer(QWidget):
     #Check ms in audio to stop play
     def checkPositionToStop(self):
         self.time_ = self.player.position()
-        #self.positionSlider.setValue(self.time_/1000)
+        if not video_player:
+            audioGlobals.fig.drawNew(float(self.time_)/1000)
+            audioGlobals.fig.draw()
         if self.time_ >= self.end:
             self.audioStop()
             self.player.setPosition(self.start)
@@ -690,11 +695,12 @@ class VideoPlayer(QWidget):
         global video_player
         framerate = 0
                
-        fileName, _ = QFileDialog.getOpenFileName(self, "Open Bag", QDir.currentPath(),"(*.bag *.avi *.mp4)")
+        fileName, _ = QFileDialog.getOpenFileName(self, "Open Bag", QDir.currentPath(),"(*.bag *.avi *.mp4 *.mkv *.mp3 *.wav)")
         # create a messsage box for get or load data info
         if fileName:
+            name, extension = os.path.splitext(fileName)
             self.videobox = []
-            if fileName.split('.')[1] == 'bag':
+            if extension == '.bag':
                 bagFile = fileName
                 try:
                     bag = rosbag.Bag(fileName)
@@ -730,9 +736,9 @@ class VideoPlayer(QWidget):
                     try:
                         video_player = True
                         rgbFileName = fileName.replace(".bag","_RGB.avi")
-                        (self.message_count, compressed, framerate) = rosbagVideo.buffer_video_metadata(bag, self.topic_window.temp_topics[2][1])
 
                         if not os.path.isfile(rgbFileName):
+                            self.message_count, compressed, framerate = rosbagVideo.buffer_bag_metadata(bag, self.topic_window.temp_topics[2][1])
                             #Get bag video metadata
                             print('Getting rgb data from ROS', 'green')
                             image_buffer = rosbagRGB.buffer_rgb_data(bag, self.topic_window.temp_topics[2][1], compressed)
@@ -742,7 +748,7 @@ class VideoPlayer(QWidget):
                             if not result:
                                 raise Exception(2)
                         
-                        (self.duration, framerate, self.message_count) =  rosbagRGB.get_metadata(rgbFileName)
+                        self.duration, framerate, self.message_count =  rosbagRGB.get_metadata(rgbFileName)
                         
                         # just fill time buffer in case that video exists
                         start_time = None
@@ -751,6 +757,9 @@ class VideoPlayer(QWidget):
                                 start_time = t.to_sec()
                             time = t.to_sec() - start_time
                             self.videobox.append(boundBox(time))
+                            
+                        self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(os.path.abspath(rgbFileName))))
+                        self.playButton.setEnabled(True)
                      
                                         
                                     
@@ -758,34 +767,37 @@ class VideoPlayer(QWidget):
                         print(e)
                         self.errorMessages(e[0])	                            
             else:
-                video_player = True
-                self.duration, framerate, self.message_count  =  rosbagRGB.get_metadata(fileName)
-                self.videobox = [boundBox(count/framerate) for count in xrange(int(self.message_count))] 
-                self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(os.path.abspath(fileName))))
-                self.playButton.setEnabled(True)
-                rgbFileName = fileName
+                if extension in video_extensions:
+                    video_player = True
+                    self.duration, framerate, self.message_count  =  rosbagRGB.get_metadata(fileName)
+                    self.videobox = [boundBox(count/framerate) for count in xrange(int(self.message_count))] 
+                    self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(os.path.abspath(fileName))))
+                    self.playButton.setEnabled(True)
+                    rgbFileName = fileName
                 
                 try:
-                    audio_player = True
                     audioGlobals.annotations = []
                     rosbagAudio.runMain(None, str(fileName))
+                    
+                    #DEFINE PLAYER-PLAYLIST
+                    #----------------------
+                    print audioGlobals.wavFileName
+                    self.source = QUrl.fromLocalFile(os.path.abspath(audioGlobals.wavFileName))
+                    self.content = QMediaContent(self.source)
+                    self.playlist.addMedia(self.content)
+                    self.player.setPlaylist(self.playlist)
+        
+                    self.wave.drawWave()
+                    self.wave.drawAnnotations()
+                    self.wave.draw()
+                    self.audioChart.drawChart()
+                    self.audioChart.draw()
+                    audio_player = True
+                    
                 except:
-                    self.errorMessages(6)
+                    print "No audio found"
                 
-                #DEFINE PLAYER-PLAYLIST
-                #----------------------
-                print audioGlobals.wavFileName
-                self.source = QUrl.fromLocalFile(os.path.abspath(audioGlobals.wavFileName))
-                self.content = QMediaContent(self.source)
-                self.playlist.addMedia(self.content)
-                self.player.setPlaylist(self.playlist)
-    
-                self.wave.drawWave()
-                self.wave.drawAnnotations()
-                self.wave.draw()
-                self.audioChart.drawChart()
-                self.audioChart.draw()
-                
+            
             mainWindow.repaint(player.videobox, framerate)
             mainWindow.setWindowTitle(fileName)    
             self.setWindowTitle(fileName + ' -> Annotation')
@@ -906,7 +918,7 @@ class VideoPlayer(QWidget):
             self.videoPosition()
             self.mediaPlayer.pause()
             if audio_player:
-                self.audioPause()
+                self.audioPlay()
             self.time_ = self.positionSlider
 
         else:
@@ -935,6 +947,10 @@ class VideoPlayer(QWidget):
         self.positionSlider.setValue(position)
         self.positionSlider.setToolTip(str(time) + ' sec')
         self.timelabel.setText(self.label_tmp.format('Time: ' + str(time) + '/ ' + str("{0:.2f}".format(self.duration)) + ' sec'))
+        
+        if audioGlobals.duration > 0:
+            audioGlobals.fig.drawNew(time)
+            audioGlobals.fig.draw()
 
     def keyPressEvent(self,event):
         if event.key() == Qt.Key_Control:
@@ -959,9 +975,8 @@ class VideoPlayer(QWidget):
             self.mediaPlayer.setPosition(position)
         if audio_player:
             self.player.setPosition(position)
-
-      
-   
+            
+            
     def closeEvent(self, event):
         self.writeCSV()
     
@@ -1076,8 +1091,8 @@ class MainWindow(QMainWindow):
         
         
     def createActions(self):
-        self.openBagAct = QAction("&Open rosbag", self, shortcut="Ctrl+B",
-            statusTip="Open rosbag", triggered=self.openBag)
+        self.openBagAct = QAction("&Open video/audio/rosbag", self, shortcut="Ctrl+B",
+            statusTip="Open video/audio/rosbag", triggered=self.open)
         self.openCsvAct = QAction("&Open video csv", self, shortcut="Ctrl+V",
             statusTip="Open csv", triggered=self.openCSV)
         self.saveCsvAct = QAction("&Save video csv", self, shortcut="Ctrl+S",
@@ -1095,7 +1110,7 @@ class MainWindow(QMainWindow):
         self.shotcutAct = QAction("Shortcuts", self, statusTip="Shortcut information",
             triggered=self.shortcuts)
         
-    def openBag(self):
+    def open(self):
         player.openFile()
         
     def openCSV(self):

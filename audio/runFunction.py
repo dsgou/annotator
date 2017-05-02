@@ -63,7 +63,7 @@ def run(wavFileName2,bagFile2):
     # >> Open CSVfile 
     #----------------------
     # check if .csv exists
-    csvFileName = audioGlobals.bagFile.replace(".bag","_audio.csv")
+    csvFileName = audioGlobals.wavFileName.replace(".wav","_audio.csv")
     if os.path.isfile(csvFileName):
         annotationFile = open(csvFileName, 'rb')
 
@@ -102,7 +102,7 @@ def run(wavFileName2,bagFile2):
                     audioGlobals.annotations.append([segs[j][0]*1000, segs[j][1]*1000, classesAll[i]])
 
         # >> Write annotations in csv file
-        csvFileName = audioGlobals.bagFile.replace(".bag","_audio.csv")
+        csvFileName = audioGlobals.wavFileName.replace(".wav","_audio.csv")
         annotationFile = open(csvFileName, 'w')
         write = csv.writer(annotationFile)
         write.writerows(audioGlobals.annotations)

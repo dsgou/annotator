@@ -168,7 +168,7 @@ class Window(FigureCanvas):
     def __init__(self, parent=None, width=15, height=2, dpi=100):
         fig = Figure(figsize=(width, height), dpi=dpi)
         self.axes = fig.add_subplot(111)
-
+        
         #self.drawWave()
         self.drawAnnotations()
 
@@ -251,7 +251,8 @@ class Waveform(Window):
         self.drawWave()
         self.drawAnnotations()
         self.draw()
-
+    
+        
     # >> PLOT WAVEFORM
     #----------------------
     def drawWave(self):
@@ -262,18 +263,17 @@ class Waveform(Window):
 
         self.timeArray = np.arange(0,audioGlobals.signal.shape[0] / 16000.0, 1.0/16000)
         audioGlobals.timeArrayToPlot = self.timeArray[0:-1:self.plotStep]
-
         #Plot Waveform Signal
         self.axes.get_xaxis().set_visible(True)
         self.axes.plot(audioGlobals.timeArrayToPlot, self.signalToPlot)
         self.axes.set_yticklabels([])
         self.axes.set_xlim([-1,audioGlobals.duration + 1])
         audioGlobals.xTicks = self.axes.get_xticks()
-        self.axes.grid(True)
-
+        #~ self.axes.grid(True)
+        
     # >> PLOT CURSORS AND SELECTED AREA
     #----------------------
-    def drawCursor(self,start, end, c, playFlag):
+    def drawCursor(self, start, end, c, playFlag):
         #Media player variables
 
         tStart = float(start)/1000.0
@@ -363,8 +363,12 @@ class Waveform(Window):
         #flag isBold -> test on clear if selected area is bold to return in normal plot
         audioGlobals.isBold = True
         audioGlobals.selected = False
+    
+    def drawNew(self, pos):
+        self.axes.lines[-1].remove()
+        audioGlobals.cursor = self.axes.axvline(pos, color='black', alpha=1)
 
-
+        
     def annotationMenu(self):
         speakers = []
         passAppend = True

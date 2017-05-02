@@ -16,7 +16,7 @@ Output:
         -framerate  : image topic framerate
 """
 
-def buffer_video_metadata(bag, input_topic):
+def buffer_bag_metadata(bag, input_topic):
     topicKey = 0
     topic = 0
     flag = False

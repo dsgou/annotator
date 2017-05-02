@@ -89,15 +89,16 @@ def mp3_to_wav(mp3Path, frequency):
     #call arg not file...
     wavFileName = mp3Path.replace(".mp3",".wav")
     #write 1.6 kHz
-    subprocess.call(['ffmpeg', '-i', mp3Path, '-y', '-ar', '16000', '-ac', '1', wavFileName])
+    subprocess.call(['ffmpeg', '-loglevel', 'quiet', '-i', mp3Path, '-y', '-ar', '16000', '-ac', '1', wavFileName])
     return wavFileName
 
 #convert mp4 to wav
-def mp4_to_wav(mp3Path, frequency):
+def video_to_wav(video_path, frequency):
     #call arg not file...
-    wavFileName = mp3Path.replace(".mp4",".wav")
+    name, extension = os.path.splitext(video_path)
+    wavFileName = name + ".wav"
     #write 1.6 kHz
-    subprocess.call(['ffmpeg', '-i', mp3Path,'-y', '-vn', '-f', 'wav', wavFileName])
+    subprocess.call(['ffmpeg', '-loglevel', 'quiet', '-i', video_path, '-y', '-ar', '16000', '-vn', '-ac', '1', wavFileName])
     return wavFileName
 
 #play wav file
@@ -134,11 +135,10 @@ def createWaveform(wavFileName):
 
 #main
 def runMain(bag, fileName):
-    
+    video_extensions = [".mp4", ".avi", ".mkv"]
     if bag:
         #read bag file
         audioGlobals.bagFile = fileName
-    
         audioFileName = fileName.replace(".bag",".wav")
         if os.path.isfile(audioFileName):
             print colored('Load WAV File', 'yellow')
@@ -156,12 +156,12 @@ def runMain(bag, fileName):
         audioGlobals.saveAudio = False
         if extension == ".wav":
             print colored('Load WAV File', 'yellow')
-            audioGlobals.wavFileName = audioFileName
+            audioGlobals.wavFileName = fileName
         elif extension == ".mp3":
-            audioGlobals.wavFileName = mp3_to_wav(fileName, 16000)
-        elif extension == ".mp4":
-            audioGlobals.wavFileName = mp4_to_wav(fileName, 16000)
-
+            audioGlobals.wavFileName = video_to_wav(fileName, 16000)
+        elif extension in video_extensions:
+            audioGlobals.wavFileName = video_to_wav(fileName, 16000)
+    print audioGlobals.wavFileName
     runFunction.run(audioGlobals.wavFileName, audioGlobals.bagFile)
     
 

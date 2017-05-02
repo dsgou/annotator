@@ -104,7 +104,7 @@ Output: --
 """
 def write_rgb_video(rgbFileName, image_buffer, framerate):
 	result = False
-	print  'Writing rgb video at: ', 'yellow',rgbFileName 
+	print  'Writing rgb video at:', rgbFileName 
 	#Check opencv version
 	major = cv2.__version__.split(".")[0]
 	if major == '3':
@@ -124,7 +124,7 @@ def write_rgb_video(rgbFileName, image_buffer, framerate):
 			i +=1
 			video_writer.write(frame)
 		video_writer.release()
-		print 'Video writen successfully', 'yellow'
+		print 'Video writen successfully'
 	#~ cap = cv2.VideoCapture(rgbFileName)
 	#~ i= 0
 	#~ while(True):

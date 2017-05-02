@@ -1,12 +1,14 @@
 class audioGlobals:
 	#a few globals...
-
+	
 	#Argument files
 	wavFileName = None
 	rosbagName = None
 	bagFile = None
 	saveAudio = False
 
+	cursor = None
+	
 	#Signal
 	spf = 0
 	duration = 0 
