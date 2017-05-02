@@ -1,7 +1,6 @@
 # multimedia-annotator
 
-Annotate video either in common formats or rosbags.
-Annotate video and audio stored in rosbags.
+Annotate video and audio streams either in common formats(mp4, avi, mkv, wav, mp3) or rosbag files. Rosbag format is used by ROS(http://www.ros.org/) to group multiple streams in a single file. 
 
 ## Installation
  * Dependencies
@@ -14,7 +13,7 @@ Annotate video and audio stored in rosbags.
    * python-matplotlib
    * python-numpy
    * libav-tools
-   * pyAudioAnalysis (found on github)
+   * pyAudioAnalysis (found on github https://github.com/tyiannak/pyAudioAnalysis)
 
 ##Usage
    * Running the annotator
