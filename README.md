@@ -19,7 +19,7 @@ Annotate video and audio stored in rosbags.
 ##Usage
    * Running the annotator
  ```
-     python rosbagAnnotator.py
+     python annotator.py
 ```
  * Video annotation actions   
    * Creating an annotation area
