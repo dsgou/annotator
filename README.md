@@ -2,6 +2,9 @@
 
 Annotate video and audio streams either in common formats(mp4, avi, mkv, wav, mp3) or rosbag files. Rosbag format is used by ROS(http://www.ros.org/) to group multiple streams in a single file. 
 
+You can easily annotate video files per frame or in groups by forming rectangle areas. In the example below we have a screenshot of the program in use for and mp4 file. You can see the video player and a gant chart of the annotations we have made along with the corresponding waveform of the audio stream and its automatically extracted annotations(we will talk about that later).
+![alt text](https://drive.google.com/file/d/0B7MZy1Not-DyamFRek8tUkROR2c/view?usp=sharing)
+
 ## Installation
  * Dependencies
  
@@ -15,7 +18,7 @@ Annotate video and audio streams either in common formats(mp4, avi, mkv, wav, mp
    * libav-tools
    * pyAudioAnalysis (found on github https://github.com/tyiannak/pyAudioAnalysis)
 
-##Usage
+## Usage
    * Running the annotator
  ```
      python annotator.py
