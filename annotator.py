@@ -635,23 +635,15 @@ class VideoPlayer(QWidget):
             #10ms for changePosition -> Not Delaying
             self.player.positionChanged.connect(self.checkPositionToStop)
             self.player.setNotifyInterval(10)
-            if audioGlobals.durationFlag==0:
-                audioGlobals.playerStarted = True
-                audioGlobals.startTimeToPlay = 0
-                self.start = audioGlobals.startTimeToPlay
-                self.end = audioGlobals.duration*1000 - 10
-                audioGlobals.endTimeToPlay = self.end
-                audioGlobals.counterClick = 3
-            elif audioGlobals.durationFlag==1:
-                audioGlobals.playerStarted = True
-                self.start = audioGlobals.startTimeToPlay
+            audioGlobals.playerStarted = True
+            if audioGlobals.durationFlag in [0, 1]:
                 self.end = audioGlobals.duration*1000 - 10
                 audioGlobals.endTimeToPlay = self.end
                 audioGlobals.counterClick = 3
             elif audioGlobals.durationFlag==2:
-                audioGlobals.playerStarted = True
-                self.start = audioGlobals.startTimeToPlay
                 self.end = audioGlobals.endTimeToPlay
+                
+            self.start = audioGlobals.startTimeToPlay
             self.player.setPosition(self.start)
             
        
@@ -913,16 +905,17 @@ class VideoPlayer(QWidget):
         global frameCounter
         global audio_player
         global video_player
-        
         if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
+            print "play", 1
             self.videoPosition()
             self.mediaPlayer.pause()
             if audio_player:
                 self.audioPlay()
             self.time_ = self.positionSlider
-
+            print "play", self.time_
         else:
             self.time_ = self.mediaPlayer.position()
+            print "play", self.time_
             if audio_player:
                 self.player.setPosition(self.time_)
                 self.end = audioGlobals.duration*1000 - 10
@@ -947,7 +940,7 @@ class VideoPlayer(QWidget):
         self.positionSlider.setValue(position)
         self.positionSlider.setToolTip(str(time) + ' sec')
         self.timelabel.setText(self.label_tmp.format('Time: ' + str(time) + '/ ' + str("{0:.2f}".format(self.duration)) + ' sec'))
-        
+        print audioGlobals.duration, time
         if audioGlobals.duration > 0:
             audioGlobals.fig.drawNew(time)
             audioGlobals.fig.draw()
