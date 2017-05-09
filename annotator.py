@@ -610,14 +610,11 @@ class VideoPlayer(QWidget):
         self.stopButtonAudio = QPushButton()
 
         self.playButtonAudio.clicked.connect(self.audioPlay)
-        self.stopButtonAudio.clicked.connect(self.audioStop)
         
         self.playButtonAudio.setIcon(self.style().standardIcon(QStyle.SP_MediaPlay))
-        self.stopButtonAudio.setIcon(self.style().standardIcon(QStyle.SP_MediaStop))
         
         buttonLayoutAudio = QHBoxLayout()
         buttonLayoutAudio.addWidget(self.playButtonAudio)
-        buttonLayoutAudio.addWidget(self.stopButtonAudio)
         buttonLayoutAudio.setAlignment(Qt.AlignLeft)
         
         return buttonLayoutAudio
@@ -635,9 +632,9 @@ class VideoPlayer(QWidget):
             if audioGlobals.durationFlag in [0, 1]:
                 self.end = audioGlobals.duration*1000 - 10
                 audioGlobals.endTimeToPlay = self.end
-                audioGlobals.counterClick = 3
             else:
                 self.end = audioGlobals.endTimeToPlay
+                
                 
             self.start = audioGlobals.startTimeToPlay
             self.player.setPosition(self.start)

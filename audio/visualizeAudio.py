@@ -62,6 +62,7 @@ def onclick(event):
             audioGlobals.fig.clear()
 
             # >> First Click
+            print audioGlobals.counterClick
             if audioGlobals.counterClick == 1:
                 audioGlobals.xStart = x*1000
                 print 'Start time %f ms' %audioGlobals.xStart      
