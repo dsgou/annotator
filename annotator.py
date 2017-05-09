@@ -168,8 +168,7 @@ class VideoWidget(QWidget):
         palette = self.palette()
         palette.setColor(QPalette.Background, Qt.black)
         self.setPalette(palette)
-        self.setSizePolicy(QSizePolicy.MinimumExpanding ,
-        QSizePolicy.MinimumExpanding)
+        self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
         self.surface = VideoWidgetSurface(self)
         self.vanishBox = False
         self.context_menu = False
@@ -518,8 +517,6 @@ class VideoPlayer(QWidget):
         self.positionSlider.setTickInterval(1)
         self.positionSlider.sliderMoved.connect(self.setPosition)
 
-       
-        
     def createVideoButtons(self):
         
         verticalLine 	=  QFrame()
@@ -574,7 +571,6 @@ class VideoPlayer(QWidget):
         self.mediaPlayer.pause()
         self.Pause()
 
-    
     def previousFrame(self):
         global frameCounter
         if frameCounter > 0:
@@ -640,7 +636,7 @@ class VideoPlayer(QWidget):
                 self.end = audioGlobals.duration*1000 - 10
                 audioGlobals.endTimeToPlay = self.end
                 audioGlobals.counterClick = 3
-            elif audioGlobals.durationFlag==2:
+            else:
                 self.end = audioGlobals.endTimeToPlay
                 
             self.start = audioGlobals.startTimeToPlay
@@ -794,7 +790,6 @@ class VideoPlayer(QWidget):
             mainWindow.setWindowTitle(fileName)    
             self.setWindowTitle(fileName + ' -> Annotation')
      
-    
     #Open CSV file
     def openCsv(self):
         global framerate
@@ -868,7 +863,6 @@ class VideoPlayer(QWidget):
                     
                 print ("Csv written at: ", csvFileName) 
                 
-                	
     def errorMessages(self, index):
         msgBox = QMessageBox()
         msgBox.setIcon(msgBox.Warning)
@@ -906,16 +900,13 @@ class VideoPlayer(QWidget):
         global audio_player
         global video_player
         if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
-            print "play", 1
             self.videoPosition()
             self.mediaPlayer.pause()
             if audio_player:
                 self.audioPlay()
             self.time_ = self.positionSlider
-            print "play", self.time_
         else:
             self.time_ = self.mediaPlayer.position()
-            print "play", self.time_
             if audio_player:
                 self.player.setPosition(self.time_)
                 self.end = audioGlobals.duration*1000 - 10
@@ -940,8 +931,8 @@ class VideoPlayer(QWidget):
         self.positionSlider.setValue(position)
         self.positionSlider.setToolTip(str(time) + ' sec')
         self.timelabel.setText(self.label_tmp.format('Time: ' + str(time) + '/ ' + str("{0:.2f}".format(self.duration)) + ' sec'))
-        print audioGlobals.duration, time
-        if audioGlobals.duration > 0:
+        
+        if audioGlobals.duration > 0 and self.mediaPlayer.state() != 0:
             audioGlobals.fig.drawNew(time)
             audioGlobals.fig.draw()
 
