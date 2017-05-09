@@ -7,4 +7,6 @@ matrix:
           python: '2.7'
 
 before_install:
-- sudo apt-get install rosbag python-pyqt5 python-pyqt5.qtmultimedia libqt5multimedia5 libqt5glib python-matplotlib python-numpy libav-tools
+- sudo add-apt-repository ppa:canonical-qt5-edgers/ubuntu1204-qt5
+- sudo apt-get update
+- sudo apt-get install python-rosbag python-pyqt5 python-pyqt5.qtmultimedia libqt5multimedia5 libqt5glib python-matplotlib python-numpy libav-tools
