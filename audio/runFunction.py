@@ -75,7 +75,7 @@ def run(wavFileName2,bagFile2):
 
         # get speakers unic colors for annotation plot and ganttChart
         #print len(audioGlobals.GreenShades)
-        for shadeIndex in range(len(audioGlobals.annotations)):
+        for shadeIndex in xrange(len(audioGlobals.annotations)):
             if audioGlobals.annotations[shadeIndex][2][:8] == 'Speech::':
                 #print audioGlobals.greenIndex, len(audioGlobals.GreenShades)-1
                 if audioGlobals.greenIndex >= (len(audioGlobals.GreenShades)-1):
@@ -95,9 +95,9 @@ def run(wavFileName2,bagFile2):
         className = np.arange(lengthClass, dtype=np.float)
 
 
-        for j in range(len(segs)):
+        for j in xrange(len(segs)):
             # no Annotation for Silence segments
-            for i in range(len(classesAll)):
+            for i in xrange(len(classesAll)):
                 if classes[j] == className[i] and classesAll[i] != 'Silence':
                     audioGlobals.annotations.append([segs[j][0]*1000, segs[j][1]*1000, classesAll[i]])
 

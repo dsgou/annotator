@@ -122,16 +122,16 @@ def onclick(event):
             print '=========================='
             print 'Selected segment'
             if not audioGlobals.selected:
-                for index in range(len(audioGlobals.annotations)):
+                for index in xrange(len(audioGlobals.annotations)):
                     if audioGlobals.xCheck >= audioGlobals.annotations[index][0] and audioGlobals.xCheck <= audioGlobals.annotations[index][1]:
                         audioGlobals.startTimeToPlay = audioGlobals.annotations[index][0]
                         audioGlobals.endTimeToPlay = audioGlobals.annotations[index][1]
-                        for colorIndex in range(len(annotationColors)):
+                        for colorIndex in xrange(len(annotationColors)):
                             if annotationColors[colorIndex][0] == audioGlobals.annotations[index][2]:
                                 color = annotationColors[colorIndex][1]
             
                             elif audioGlobals.annotations[index][2][:8] == 'Speech::':
-                                for shadeIndex in range(len(audioGlobals.shadesAndSpeaker)):
+                                for shadeIndex in xrange(len(audioGlobals.shadesAndSpeaker)):
                                     if audioGlobals.annotations[index][2] == audioGlobals.shadesAndSpeaker[shadeIndex][0]:
                                         color = audioGlobals.shadesAndSpeaker[shadeIndex][1]
 
@@ -331,10 +331,10 @@ class Waveform(Window):
 
         #check for change existing annotation
         #----------------------
-        for class1 in range(len(audioGlobals.annotations)):
+        for class1 in xrange(len(audioGlobals.annotations)):
             if start == audioGlobals.annotations[class1][0] and end == audioGlobals.annotations[class1][1]:
                 audioGlobals.text1 = audioGlobals.annotations[class1][2]
-                for class2 in range(len(audioGlobals.annotations)):
+                for class2 in xrange(len(audioGlobals.annotations)):
                     if (audioGlobals.annotations[class1][0] < audioGlobals.annotations[class2][0] and audioGlobals.annotations[class1][1] > audioGlobals.annotations[class2][1] or
                         audioGlobals.annotations[class1][0] > audioGlobals.annotations[class2][0] and audioGlobals.annotations[class1][1] < audioGlobals.annotations[class2][1] or
                         audioGlobals.annotations[class1][0] < audioGlobals.annotations[class2][0] and audioGlobals.annotations[class1][1] > audioGlobals.annotations[class2][0] or
@@ -342,10 +342,10 @@ class Waveform(Window):
                         audioGlobals.text2 = audioGlobals.annotations[class2][2]
 
         #find if segment is above or not
-        for class1 in range(len(audioGlobals.annotations)):
+        for class1 in xrange(len(audioGlobals.annotations)):
             if start == audioGlobals.annotations[class1][0] and end == audioGlobals.annotations[class1][1]:
                 audioGlobals.text1 = audioGlobals.annotations[class1][2]
-                for class2 in range(len(audioGlobals.annotations)):
+                for class2 in xrange(len(audioGlobals.annotations)):
                         if audioGlobals.annotations[class1][0] < audioGlobals.annotations[class2][0] and audioGlobals.annotations[class1][1] > audioGlobals.annotations[class2][1]:
                             if class2 < class1:
                                 audioGlobals.isAbove = True
@@ -376,7 +376,7 @@ class Waveform(Window):
 
         annotation = QMenu()
 
-        for index in range(len(audioGlobals.annotations)):
+        for index in xrange(len(audioGlobals.annotations)):
             if audioGlobals.startTimeToPlay==audioGlobals.annotations[index][0] and audioGlobals.endTimeToPlay==audioGlobals.annotations[index][1]:
                 if not audioGlobals.overlap:
                     delete = annotation.addAction('Delete')
@@ -395,13 +395,13 @@ class Waveform(Window):
         
         #Define Labels
         #----------------------
-        for i in range(len(audioGlobals.classLabels)):
+        for i in xrange(len(audioGlobals.classLabels)):
             self.subMenu.addAction(audioGlobals.classLabels[i])
 
         #Define Speakers
         #----------------------
         speakerMenu = self.subMenu.addMenu('Speech')
-        for i in range(len(audioGlobals.annotations)):
+        for i in xrange(len(audioGlobals.annotations)):
             if audioGlobals.annotations[i][2][:8] == 'Speech::':
                 remove = audioGlobals.annotations[i][2].index(':')
                 remove = remove + 2
@@ -411,7 +411,7 @@ class Waveform(Window):
                     speakers.append(audioGlobals.annotations[i][2][-sub:])
                 #speakerMenu.addAction(speaker)
 
-        for index in range(len(speakers)):
+        for index in xrange(len(speakers)):
             speakerMenu.addAction(speakers[index])
         addNew = speakerMenu.addAction('Add New Speaker')
 
@@ -447,41 +447,25 @@ class Waveform(Window):
     # >> Annotate Audio Segments from Annotation Menu
     #----------------------
     def chooseAnnotation(self, action):
-        global doIt
-
-        doIt = False
 
         text = action.text()
         audioGlobals.text_ = text
 
+        if text in audioGlobals.classLabels:
+            if text == 'Speech':
+                audioGlobals.colorName = 'green'
+            elif text == 'Music':
+                audioGlobals.colorName = 'red'
+            elif text == 'Activity':
+                audioGlobals.colorName = 'magenta'
 
-        if text == 'Speech':
-            audioGlobals.colorName = 'green'
-            doIt = True
-
-        elif text == 'Music':
-            audioGlobals.colorName = 'red'
-            doIt = True
-
-        elif text == 'Activity':
-            audioGlobals.colorName = 'magenta'
-            doIt = True
-
-        elif text == 'Laugh':
-            audioGlobals.colorName = 'yellow'
-            doIt = True
-        elif text == 'Cough':
-            audioGlobals.colorName = '#4B0082'
-            doIt = True
-        elif text == 'Moan':
-            audioGlobals.colorName = '#800000'
-            doIt = True
-        elif text == 'Steps':
-            doIt = True
-        elif text =='TV':
-            doIt = True
-        
-        if doIt:
+            elif text == 'Laugh':
+                audioGlobals.colorName = 'yellow'
+            elif text == 'Cough':
+                audioGlobals.colorName = '#4B0082'
+            elif text == 'Moan':
+                audioGlobals.colorName = '#800000'
+            
             eA.saveAnnotation()
             self.draw()
             audioGlobals.chartFig.axes.clear()
@@ -495,20 +479,20 @@ class Waveform(Window):
         self.axes.set_yticklabels([])
         self.axes.get_yaxis().set_visible(False)
         color = None
-        for index in range(len(audioGlobals.annotations)):
+        for index in xrange(len(audioGlobals.annotations)):
             startAnnotation = float(audioGlobals.annotations[index][0])/1000.0
             endAnnotation = float(audioGlobals.annotations[index][1])/1000.0
             iStart = np.argmin(np.abs(audioGlobals.timeArrayToPlot - startAnnotation))
             iEnd = np.argmin(np.abs(audioGlobals.timeArrayToPlot - endAnnotation))
             # if Speech define greenshade
             if audioGlobals.annotations[index][2][:8] == 'Speech::':
-                for shadeIndex in range(len(audioGlobals.shadesAndSpeaker)):
+                for shadeIndex in xrange(len(audioGlobals.shadesAndSpeaker)):
                     if audioGlobals.annotations[index][2] == audioGlobals.shadesAndSpeaker[shadeIndex][0]:
                         color = audioGlobals.shadesAndSpeaker[shadeIndex][1]
                 pass
             # annotate rest of Classes
             else:
-                for colorIndex in range(len(annotationColors)):
+                for colorIndex in xrange(len(annotationColors)):
                     if annotationColors[colorIndex][0] == audioGlobals.annotations[index][2]:
                         color = annotationColors[colorIndex][1]
             self.axes.plot(audioGlobals.timeArrayToPlot[iStart:iEnd],self.signalToPlot[iStart:iEnd],color=color)

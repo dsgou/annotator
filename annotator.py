@@ -21,9 +21,10 @@ from gui import editLabels
 from gui import videoShortcuts
 
 from audio import rosbagAudio
+from audio import saveAudioSegments
 from audio import visualizeAudio as vA
 from audio import ganttChartAudio as gA
-from audio import saveAudioSegments
+from audio import editAnnotations as eA
 from audio.audioGlobals import audioGlobals
 from audio.graphicalInterfaceAudio import ApplicationWindow
 
@@ -832,8 +833,8 @@ class VideoPlayer(QWidget):
         global rgbFileName
         global video_player
         if video_player:
-            
-            csvFileName = rgbFileName.replace(rgbFileName.split(".")[-1],"csv")
+            name, extension = os.path.splitext(rgbFileName)
+            csvFileName = rgbFileName.replace(extension,"_video.csv")
             with open(csvFileName, 'w') as file:
                 csv_writer = csv.writer(file, delimiter='\t')
                 csv_writer.writerow(headlines)
@@ -858,7 +859,7 @@ class VideoPlayer(QWidget):
                     else:
 						csv_writer.writerow([box.timestamp])
                     
-                print ("Csv written at: ", csvFileName) 
+                print ("Video csv written at: ", csvFileName) 
                 
     def errorMessages(self, index):
         msgBox = QMessageBox()
@@ -960,6 +961,7 @@ class VideoPlayer(QWidget):
             
     def closeEvent(self, event):
         self.writeCSV()
+        eA.writeCSV()
     
     def parseJson(self):
         json_basicLabel = []
@@ -1076,12 +1078,12 @@ class MainWindow(QMainWindow):
             statusTip="Open video/audio/rosbag", triggered=self.open)
         self.openCsvAct = QAction("&Open video csv", self, shortcut="Ctrl+V",
             statusTip="Open csv", triggered=self.openCSV)
-        self.saveCsvAct = QAction("&Save video csv", self, shortcut="Ctrl+S",
+        self.saveCsvAct = QAction("&Save audio/video csv", self, shortcut="Ctrl+S",
             statusTip="Save csv", triggered=self.saveCSV)
         self.quitAct = QAction("&Quit", self, shortcut="Ctrl+Q",
             statusTip="Quit", triggered=self.closeEvent)
             
-        self.editLabelsAct = QAction("Edit Labels", self,
+        self.editLabelsAct = QAction("Edit Video Labels", self,
             statusTip="Edit Labels", triggered=self.edit_labels)
         self.deleteAct = QAction("Delete All Boxes", self, shortcut=Qt.ALT + Qt.Key_R,
             statusTip="Delete All Boxes", triggered=self.deleteEvent)
@@ -1099,12 +1101,14 @@ class MainWindow(QMainWindow):
         
     def saveCSV(self):
         player.writeCSV()
+        eA.writeCSV()
      
     def close(self):
         sys.exit(app) 
         
     def saveAndClose(self):
         player.writeCSV()
+        eA.writeCSV()
         sys.exit(app) 
     
     def closeEvent(self, event):

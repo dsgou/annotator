@@ -42,7 +42,7 @@ def audio_bag_file(bagFile):
     info_dict = yaml.load(bag._get_yaml_info())
     topics =  info_dict['topics']
 
-    for key in range(len(topics)):
+    for key in xrange(len(topics)):
         if topics[key]['topic'] == '/audio':
             topicKey = key
 
