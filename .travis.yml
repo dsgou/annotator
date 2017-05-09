@@ -1,8 +1,5 @@
 language: python
 sudo: required
 dist: trusty
-python:
-  - "2.7"
 before_install:
-- sudo apt-get update 
-- sudo apt-get install python-rosbag python-pyqt5 python-pyqt5.qtmultimedia libqt5multimedia5 libqt5glib python-matplotlib python-numpy libav-tools -y -qq
+- sudo apt install python-rosbag python-pyqt5 python-pyqt5.qtmultimedia libqt5multimedia5 libqt5glib python-matplotlib python-numpy libav-tools -qq
