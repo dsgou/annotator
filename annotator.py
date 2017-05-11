@@ -168,6 +168,7 @@ class VideoWidget(QWidget):
         self.setPalette(palette)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
         self.surface = VideoWidgetSurface(self)
+        
         self.vanishBox = False
         self.context_menu = False
         self.enableWriteBox = False

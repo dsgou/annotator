@@ -97,15 +97,16 @@ def onclick(event):
                     if audioGlobals.xCheck >= audioGlobals.annotations[index][0] and audioGlobals.xCheck <= audioGlobals.annotations[index][1]:
                         audioGlobals.startTimeToPlay = audioGlobals.annotations[index][0]
                         audioGlobals.endTimeToPlay = audioGlobals.annotations[index][1]
-                        for colorIndex in xrange(len(annotationColors)):
-                            if annotationColors[colorIndex][0] == audioGlobals.annotations[index][2]:
-                                color = annotationColors[colorIndex][1]
-            
-                            elif audioGlobals.annotations[index][2][:8] == 'Speech::':
-                                for shadeIndex in xrange(len(audioGlobals.shadesAndSpeaker)):
-                                    if audioGlobals.annotations[index][2] == audioGlobals.shadesAndSpeaker[shadeIndex][0]:
-                                        color = audioGlobals.shadesAndSpeaker[shadeIndex][1]
                         break
+                        #~ for colorIndex in xrange(len(annotationColors)):
+                            #~ if annotationColors[colorIndex][0] == audioGlobals.annotations[index][2]:
+                                #~ color = annotationColors[colorIndex][1]
+            
+                            #~ elif audioGlobals.annotations[index][2][:8] == 'Speech::':
+                                #~ for shadeIndex in xrange(len(audioGlobals.shadesAndSpeaker)):
+                                    #~ if audioGlobals.annotations[index][2] == audioGlobals.shadesAndSpeaker[shadeIndex][0]:
+                                        #~ color = audioGlobals.shadesAndSpeaker[shadeIndex][1]
+                        
                 audioGlobals.playerStarted = False
             else:
                 audioGlobals.counterClick = audioGlobals.counterClick + 1
@@ -144,6 +145,7 @@ class Window(FigureCanvas):
 
         FigureCanvas.setSizePolicy(self, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
+        clickID = fig.canvas.mpl_connect('button_press_event', onclick)
 
     def drawWave(self):
         pass
