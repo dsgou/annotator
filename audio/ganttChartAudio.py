@@ -1,38 +1,13 @@
 from __future__ import unicode_literals
-import sys
-import os
-import os.path
-import random
+
 import matplotlib
-import matplotlib.pyplot as plt
-from matplotlib.widgets import Cursor
 
 matplotlib.use('Qt5Agg')
-from PyQt5 import QtCore, QtWidgets, QtGui
-from PyQt5.QtGui import QFont, QPainter
-from PyQt5.QtCore import Qt, QUrl, pyqtSignal, QFile, QIODevice, QObject, QRect
-from PyQt5.QtMultimedia import (QMediaContent,
-        QMediaMetaData, QMediaPlayer, QMediaPlaylist, QAudioOutput, QAudioFormat)
-from PyQt5.QtWidgets import (QApplication, QComboBox, QHBoxLayout, QPushButton,
-        QSizePolicy, QVBoxLayout, QWidget, QToolTip, QLabel, QFrame, QGridLayout, QMenu, qApp, QLineEdit)
-
+from PyQt5 import QtWidgets
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-import matplotlib.transforms as transforms
-from matplotlib.collections import LineCollection
-from matplotlib.colors import ListedColormap, BoundaryNorm
 
-from numpy import arange, sin, pi
-
-import wave
-import numpy as np
-import subprocess
-import csv
-import cv2
-from pyAudioAnalysis import audioFeatureExtraction as aF
-from pyAudioAnalysis import audioSegmentation as aS
-from pyAudioAnalysis import audioBasicIO
 
 from audioGlobals import audioGlobals
 

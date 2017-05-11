@@ -1,41 +1,14 @@
 from __future__ import unicode_literals
-import sys
-import os
-import os.path
-import random
 import matplotlib
-import matplotlib.pyplot as plt
-from matplotlib.widgets import Cursor
-
-matplotlib.use('Qt5Agg')
-from PyQt5 import QtCore, QtWidgets, QtGui
-from PyQt5.QtGui import QFont, QPainter
-from PyQt5.QtCore import Qt, QUrl, pyqtSignal, QFile, QIODevice, QObject, QRect
-from PyQt5.QtMultimedia import (QMediaContent,
-        QMediaMetaData, QMediaPlayer, QMediaPlaylist, QAudioOutput, QAudioFormat)
-from PyQt5.QtWidgets import (QApplication, QComboBox, QHBoxLayout, QPushButton,
-        QSizePolicy, QVBoxLayout, QWidget, QToolTip, QLabel, QFrame, QGridLayout, QMenu, qApp, QLineEdit)
-
-
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
-import matplotlib.transforms as transforms
-from matplotlib.collections import LineCollection
-from matplotlib.colors import ListedColormap, BoundaryNorm
-
-from numpy import arange, sin, pi
-
-import wave
 import numpy as np
-import subprocess
-import csv
-import cv2
-from pyAudioAnalysis import audioFeatureExtraction as aF
-from pyAudioAnalysis import audioSegmentation as aS
-from pyAudioAnalysis import audioBasicIO
-
-from audioGlobals import audioGlobals
+matplotlib.use('Qt5Agg')
 import editAnnotations as eA
+from PyQt5.QtCore import Qt, QRect
+from PyQt5 import QtCore, QtWidgets
+from matplotlib.figure import Figure
+from audioGlobals import audioGlobals
+from PyQt5.QtWidgets import QPushButton, QWidget, QMenu, QLineEdit
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 annotationColors = (['Speech', 'green'],['Music','red'], ['Activity', 'magenta'],['Laugh', 'yellow'], ['Cough', '#4B0082'], ['Moan', '#800000'], ['Steps', '#FFA500'], ['TV', '#6F4E37'])
 
@@ -48,7 +21,6 @@ def onclick(event):
     global annotationColors
 
     audioGlobals.tempPass = False
-    flagDraw = True
     color = 'turquoise'
 
     if event.xdata != None:
@@ -62,7 +34,6 @@ def onclick(event):
             audioGlobals.fig.clear()
 
             # >> First Click
-            print audioGlobals.counterClick
             if audioGlobals.counterClick == 1:
                 audioGlobals.xStart = x*1000
                 print 'Start time %f ms' %audioGlobals.xStart      
@@ -134,22 +105,17 @@ def onclick(event):
                                 for shadeIndex in xrange(len(audioGlobals.shadesAndSpeaker)):
                                     if audioGlobals.annotations[index][2] == audioGlobals.shadesAndSpeaker[shadeIndex][0]:
                                         color = audioGlobals.shadesAndSpeaker[shadeIndex][1]
-
-                audioGlobals.tempPass = True
-                audioGlobals.durationFlag = 2
-                playFlag = False
+                        break
                 audioGlobals.playerStarted = False
-                audioGlobals.fig.drawCursor(audioGlobals.startTimeToPlay, audioGlobals.endTimeToPlay, color, playFlag)
-                #fig.draw()
             else:
-                audioGlobals.tempPass = True
-                audioGlobals.durationFlag = 2
                 audioGlobals.counterClick = audioGlobals.counterClick + 1
-                playFlag = False
-                audioGlobals.fig.drawCursor(audioGlobals.startTimeToPlay, audioGlobals.endTimeToPlay, color, playFlag)
-                #fig.draw()
                 audioGlobals.selected = False
-
+            
+            
+            playFlag = False
+            audioGlobals.durationFlag = 2
+            audioGlobals.tempPass = True
+            audioGlobals.fig.drawCursor(audioGlobals.startTimeToPlay, audioGlobals.endTimeToPlay, color, playFlag)
             xS = audioGlobals.startTimeToPlay
             xE = audioGlobals.endTimeToPlay
 
@@ -161,7 +127,6 @@ def onclick(event):
                 audioGlobals.fig.drawBold(color)
                 audioGlobals.fig.draw()
                 audioGlobals.fig.annotationMenu()
-                audioGlobals.fig.draw()
 
 
 class Window(FigureCanvas):
@@ -179,8 +144,6 @@ class Window(FigureCanvas):
 
         FigureCanvas.setSizePolicy(self, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
-        clickID = fig.canvas.mpl_connect('button_press_event', onclick)
-        #clickID = fig.canvas.mpl_connect('motion_notify_event', onmotion)
 
     def drawWave(self):
         pass
@@ -372,8 +335,6 @@ class Waveform(Window):
         
     def annotationMenu(self):
         speakers = []
-        passAppend = True
-
         annotation = QMenu()
 
         for index in xrange(len(audioGlobals.annotations)):
@@ -413,7 +374,6 @@ class Waveform(Window):
 
         for index in xrange(len(speakers)):
             speakerMenu.addAction(speakers[index])
-        addNew = speakerMenu.addAction('Add New Speaker')
 
         self.subMenu.triggered.connect(self.chooseAnnotation)
         speakerMenu.triggered.connect(self.Speakers)

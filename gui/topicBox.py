@@ -1,13 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import *
-from PyQt5.QtMultimedia import *
-from PyQt5.QtMultimediaWidgets import *
-from video.videoGlobals import videoGlobals
-      
+from PyQt5.QtWidgets import QPushButton, QLabel, QDialog, QComboBox, QApplication
+
 #Class for Drop down boxes about topic selection
 class TopicBox(QDialog):
     def __init__(self):

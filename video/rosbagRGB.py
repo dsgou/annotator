@@ -9,7 +9,6 @@ import numpy as np
 
 from cv_bridge import CvBridge, CvBridgeError
 
-import rosbagVideo
 
 """
 Buffers image and time data from rosbag
@@ -25,7 +24,6 @@ Output:
 """
 def buffer_rgb_data(bag, input_topic, compressed):
     image_buff = []
-    time_buff  = []
     start_time = None
     bridge     = CvBridge()
     #Buffer the images, timestamps from the rosbag

@@ -1,12 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import *
-from PyQt5.QtMultimedia import *
-from PyQt5.QtMultimediaWidgets import *
-from video.videoGlobals import videoGlobals
+from PyQt5.QtWidgets import QPushButton, QWidget, QLineEdit, QFormLayout, QVBoxLayout, QMessageBox, QHBoxLayout
 
 #Class for box id change
 class changeBoxId(QWidget):

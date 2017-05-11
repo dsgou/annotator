@@ -1,9 +1,5 @@
 from __future__ import unicode_literals
-import os
-import sys
 import csv
-import numpy as np
-from numpy import arange, sin, pi
 
 from audioGlobals import audioGlobals
 
@@ -28,10 +24,6 @@ def deleteFromOverlap(action):
     audioGlobals.fig.drawAnnotations()
     audioGlobals.fig.draw()
 
-    #if csv is empty -> delete file
-    if not audioGlobals.annotations:
-        os.remove(csvFileName)
-
     audioGlobals.chartFig.axes.clear()
     audioGlobals.chartFig.drawChart()
     audioGlobals.chartFig.draw()
@@ -40,12 +32,10 @@ def deleteFromOverlap(action):
 # >> Delete Annotated Segments
 #----------------------
 def delete():
-    tempDelete = None
     # >> Find element to delete
     for element in xrange(len(audioGlobals.annotations)):
         #check for deletion
         if audioGlobals.startTimeToPlay == audioGlobals.annotations[element][0] and audioGlobals.endTimeToPlay == audioGlobals.annotations[element][1]:
-            tempDelete = audioGlobals.annotations[element][2]
             audioGlobals.annotations.remove(audioGlobals.annotations[element])
             break
     
@@ -53,10 +43,6 @@ def delete():
     audioGlobals.isDeleted = True
     audioGlobals.isBold = False
     audioGlobals.counterClick = 1
-
-    #if csv is empty -> delete file
-    if not audioGlobals.annotations:
-        os.remove(csvFileName)
 
     audioGlobals.fig.axes.clear()
     audioGlobals.fig.drawWave()
@@ -70,15 +56,12 @@ def delete():
  # >> Save current ANNOTATION
 #----------------------
 def saveAnnotation():
-    temp = False
     annotationChange = False
     speakerExist = False
 
     # >> Define start-end annotation time
     startAnnotation = float(audioGlobals.startTimeToPlay)/1000.0
     endAnnotation = float(audioGlobals.endTimeToPlay)/1000.0
-    iStart = np.argmin(np.abs(audioGlobals.timeArrayToPlot - startAnnotation))
-    iEnd = np.argmin(np.abs(audioGlobals.timeArrayToPlot - endAnnotation))
 
     checkStart = startAnnotation * 1000
     checkEnd = endAnnotation * 1000

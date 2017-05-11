@@ -1,23 +1,12 @@
 #!/usr/bin/env python
-import roslib
-import cv2
 
-from std_msgs.msg import String
-import signal
 import os
 import sys
-import time
-import threading
-import rosbag
 import yaml
 import numpy as np
-import argparse
-import textwrap
-import struct
 import wave
 import subprocess
 import matplotlib.pyplot as plt
-import matplotlib.transforms as transforms
 
 import runFunction
 from audioGlobals import audioGlobals
@@ -37,7 +26,6 @@ def audio_bag_file(bagFile):
     #save topic and message    
     topicKey = 0
     topic = 0
-    flag = False
     bag = bagFile
     info_dict = yaml.load(bag._get_yaml_info())
     topics =  info_dict['topics']
@@ -47,12 +35,9 @@ def audio_bag_file(bagFile):
             topicKey = key
 
     topic = topics[topicKey]
-    messages =  topic['messages']
-    duration = info_dict['duration']
     topic_type = topic['type']
     frequency = topic['frequency']
 
-    audioCheck = topic['topic']
     #Checking if the topic is audio
     if 'audio_common_msgs' in topic_type:
         sound = True
@@ -65,8 +50,6 @@ def audio_bag_file(bagFile):
     if sound == True:
         for topic, msg, t in bag.read_messages(topics=['/audio']):
             audio += msg.data
-    nBytes = len(audio)
-    nSamples = nBytes / 2    
     #print "total number of compressed bytes {0:d}".format(nBytes)
     #print "total number of compressed bytes {0:d}".format(nSamples)
     #print "total duration {0:.2f}".format(duration)
@@ -123,7 +106,6 @@ def createWaveform(wavFileName):
         print 'Just mono files'
         sys.exit(0)
 
-    fig = plt.figure(1)
     plt.title('Signal Wave...')
     plt.plot(signal)
     play_wav(wavFileName)

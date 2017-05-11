@@ -27,10 +27,8 @@ class gantShow(videoGantChart):
     
     #Plot the chart
     def drawChart(self, videobox, framerate):
-        temp_action = []
         timeWithId = [[] for count in xrange(len(videobox))] 
         tickY = []
-        tickX = []
         self.axes.hlines(0,0,0)
         
         for i in xrange(len(videobox)):

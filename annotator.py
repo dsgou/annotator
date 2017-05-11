@@ -4,8 +4,6 @@ import os
 import csv
 import yaml
 import json
-import math
-import time
 import rosbag
 
 import sys
@@ -26,7 +24,6 @@ from audio import visualizeAudio as vA
 from audio import ganttChartAudio as gA
 from audio import editAnnotations as eA
 from audio.audioGlobals import audioGlobals
-from audio.graphicalInterfaceAudio import ApplicationWindow
 
 from video import rosbagRGB
 from video import rosbagVideo
@@ -417,10 +414,8 @@ class VideoWidget(QWidget):
         
         for label in action:
             if label in videoGlobals.classLabels:
-                color = label
                 return videoGlobals.annotationColors[videoGlobals.classLabels.index(label) % len(videoGlobals.annotationColors)]
             elif label == 'Clear':
-                color = 'Clear'
                 return '#0000FF'
             elif label in videoGlobals.highLabels:
                 pass
@@ -434,7 +429,7 @@ class VideoWidget(QWidget):
         else:
             for index,key in enumerate(player.videobox[frameCounter].annotation):
                 if key in videoGlobals.classLabels:
-                    return videoGlobals.annotationColors[classLabels.index(key) % len(videoGlobals.annotationColors)]
+                    return videoGlobals.annotationColors[videoGlobals.classLabels.index(key) % len(videoGlobals.annotationColors)]
                 elif key == 'Clear':
                     return '#0000FF'
 
@@ -815,7 +810,6 @@ class VideoPlayer(QWidget):
                     counter = 0
                     self.box_actionBuffer = [key for key in box_action]
                     self.features = [key for key in features]
-                    a = 0
                     for i, key in enumerate(self.box_buffer):
                         if timestamp is not None:
                             if timestamp != key[0]:
@@ -971,7 +965,6 @@ class VideoPlayer(QWidget):
 
         with open("labels.json") as json_file:
                 json_data = json.load(json_file)
-                json_label = []
                 for i in json_data['basiclabels'] :
                     json_basicLabel.append(i)
                 for i in json_data['highlevellabels']:

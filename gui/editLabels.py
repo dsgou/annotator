@@ -5,11 +5,7 @@ import json
 from gui import picklist
 from gui import addLabels
 
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import *
-from PyQt5.QtMultimedia import *
-from PyQt5.QtMultimediaWidgets import *
+from PyQt5.QtWidgets import QWidget, QMessageBox, QColorDialog
 from video.videoGlobals import videoGlobals
 
 
@@ -69,7 +65,6 @@ class addLabel(QWidget, addLabels.Ui_Dialog):
 
         with open("labels.json") as json_file:
                 json_data = json.load(json_file)
-                json_label = []
                 for i in json_data['basiclabels'] :
                     json_basicLabel.append(i)
                 for i in json_data['highlevellabels']:
@@ -166,7 +161,6 @@ class editLabels(QWidget, picklist.Ui_Form):
 
         with open("labels.json") as json_file:
                 json_data = json.load(json_file)
-                json_label = []
                 for i in json_data['basiclabels'] :
                     json_basicLabel.append(i)
                 for i in json_data['highlevellabels']:

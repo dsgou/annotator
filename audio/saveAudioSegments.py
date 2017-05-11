@@ -5,10 +5,6 @@ import csv
 import operator
 import wave
 import numpy as np
-from pyAudioAnalysis import audioFeatureExtraction as aF
-from pyAudioAnalysis import audioTrainTest as aT
-from pyAudioAnalysis import audioSegmentation as aS
-from pyAudioAnalysis import audioVisualization as aV
 from pyAudioAnalysis import audioBasicIO
 
 

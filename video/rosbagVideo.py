@@ -19,7 +19,6 @@ Output:
 def buffer_bag_metadata(bag, input_topic):
     topicKey = 0
     topic = 0
-    flag = False
     info_dict = yaml.load(bag._get_yaml_info())
     topics =  info_dict['topics']
     
@@ -31,7 +30,6 @@ def buffer_bag_metadata(bag, input_topic):
     messages =  topic['messages']
     duration = info_dict['duration']
     topic_type = topic['type']
-    frequency = topic['frequency']
     
 
     #Checking if the topic is compressed
